@@ -1,0 +1,5 @@
+parea\core\Message.class
+parea\core\User.class
+parea\core\Room.class
+parea\core\RoomManager.class
+parea\Main.class

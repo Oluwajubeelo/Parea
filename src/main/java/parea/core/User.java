@@ -16,4 +16,10 @@ public class User {
             connection.send(jsonMessage);
         }
     }
+
+    public void send(Object messageObject){
+        if(connection.session.isOpen()){
+            connection.send(messageObject);
+        }
+    }
 }

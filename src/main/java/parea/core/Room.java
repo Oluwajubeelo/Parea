@@ -27,6 +27,12 @@ public class Room {
             user.send(jsonMessage);
         }
     }
+
+    public void broadcastToEveryone(Object messageObject){
+        for(User user : activeUsers){
+            user.send(messageObject);
+        }
+    }
 }
 
     
