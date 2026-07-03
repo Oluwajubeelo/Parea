@@ -289,7 +289,10 @@
 
         <div id="editor-screen">
             <div class="header-info">
-                <span id="room-display">ROOM: ----</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="room-display">ROOM: ----</span>
+                    <button id="copy-code-btn" class="btn" style="padding: 2px 8px; font-size: 12px; display: none;" title="Copy Room Code">Copy</button>
+                </div>
 
                 <div class="dropdown">
                     <span id="users-display" style="color: #7f8c8d; font-size: 0.9em; padding: 0 10px; cursor: pointer; border-bottom: 1px dotted #7f8c8d;">USERS: 1 ▼</span>
@@ -298,14 +301,15 @@
                     </div>
                 </div>
 
-                <div>
+                <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="file" id="file-import" accept=".txt" style="display: none;">
-                    <button class="btn" id="import-btn" style="padding: 6px 12px; font-size: 14px;">Import .txt</button>
-                    <button class="btn" id="leave-btn" style="padding: 6px 12px; font-size: 14px; margin-left: 10px; background-color: #ff4757; color: white; border: none;">Leave</button>
+                    <button class="btn" id="import-btn" style="padding: 6px 12px; font-size: 14px;">Import .txt (MAX 5MB)</button>
+                    <button class="btn" id="leave-btn" style="padding: 6px 12px; font-size: 14px; background: #ff4d4d; color: white;">Leave</button>
                 </div>
                 <span id="role-display">ROLE: ----</span>
-            </div>
+            </div>                    
             <textarea id="document-editor" placeholder="Awaiting connection..." disabled></textarea>
+            <div id="typing-indicator" style="color: #7f8c8d; font-size: 0.85em; font-style: italic; min-height: 20px; margin-top: 5px;"></div>
         </div>
     </div>
 
@@ -475,12 +479,21 @@
         let pendingGuestId = "";
         let pendingFileName = "";
         let isLastUser = false;
+        let currentRoomCode = "";
+        let typingTimeout = null;
 
         importBtn.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
+
+            const maxSize = 5*1024*1024;
+            if (file.size > maxSize){
+                showToast('⚠️ File is too large! Maximum limit is 5MB.');
+                e.target.value = '';
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -566,7 +579,16 @@
         const roleDisplay = document.getElementById('role-display');
         const usersListDisplay = document.getElementById('users-list');
         const usersDisplay = document.getElementById('users-display');
-        
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        copyCodeBtn.addEventListener('click', () => {
+            if(currentRoomCode){
+                navigator.clipboard.writeText(currentRoomCode).then(() => {
+                    showToast('📋 Room code copied to clipboard!');
+                });
+            }
+        });
 
         createBtn.addEventListener('click', async() => {
             myUsername = createUsernameInput.value.trim();
@@ -604,7 +626,7 @@
 
         function connectToRoom(roomCode) {
             const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-            const wsUrl = protocol + window.location.host + '/ws/' + roomCode + '?username=' + encodeURIComponent(myUsername);
+            const wsUrl = protocol + window.location.host + '/ws/' + roomCode + '/' + encodeURIComponent(myUsername);
 
             ws = new WebSocket(wsUrl);
 
@@ -617,6 +639,9 @@
 
                 roomDisplay.innerText = 'ROOM: ' + roomCode;
                 showToast('Connected to server');
+
+                currentRoomCode = roomCode;
+                copyCodeBtn.style.display = 'inline-block';
 
                 pingInterval = setInterval(() =>{
                     if (ws.readyState === WebSocket.OPEN) {
@@ -636,6 +661,14 @@
 
                         isHostUser = (msg.senderId === "true");
                         roleDisplay.innerText = myUsername + " (" + (isHostUser ? "HOST" : "GUEST") + ")";
+                        break;
+
+                    case "TYPING":
+                        typingIndicator.innerText = msg.senderName + " is typing...";
+                        clearTimeout(typingTimeout);
+                        typingTimeout = setTimeout(() =>{
+                            typingIndicator.innerText = "";
+                        }, 2000);
                         break;
 
                     case "USER_LIST_UPDATE":
@@ -716,6 +749,7 @@
                     senderId: "CLIENT"
                 };
                 ws.send(JSON.stringify(message));
+                ws.send(JSON.stringify({type: "TYPING", senderName: myUsername, senderId: "CLIENT"}));
             }
         });
     </script>

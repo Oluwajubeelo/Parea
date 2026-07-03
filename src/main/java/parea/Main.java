@@ -46,10 +46,11 @@ public class Main{
             ctx.json(Map.of("roomCode", newRoom.roomCode));
         });
 
-        app.ws("/ws/{roomCode}", ws -> {
+        app.ws("/ws/{roomCode}/{username}", ws -> {
 
             ws.onConnect(ctx -> {
                 ctx.session.setIdleTimeout(java.time.Duration.ofMinutes(30));
+                ctx.session.getPolicy().setMaxTextMessageSize(6*1024*1024);
                 String roomCode = ctx.pathParam("roomCode").toUpperCase();
                 Room room = roomManager.getRoom(roomCode);
 
@@ -58,7 +59,7 @@ public class Main{
                     return;
                 }
 
-                String username =  ctx.queryParam("username");
+                String username =  ctx.pathParam("username");
                 if (username == null || username.isBlank()) username = "Anonymous";
 
                 boolean isHost = room.activeUsers.isEmpty();
@@ -80,6 +81,14 @@ public class Main{
                 Message msg = ctx.messageAsClass(Message.class);
                 switch(msg.type){
                     case "PING":
+                        break;
+                    
+                    case "TYPING":
+                        for(User u : room.activeUsers){
+                            if (!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
                         break;
 
                     case "TEXT_UPDATE":
@@ -106,13 +115,6 @@ public class Main{
                 
                     case "IMPORT_REQUEST":
                         //route this request only to the host
-                        
-                        // for(User u:room.activeUsers){
-                        //     if(u.connection.sessionId().equals(ctx.sessionId())){
-                        //         msg.senderName = u.username;
-
-                        //     }
-                        // }
                         msg.senderId = ctx.sessionId();
                         for(User u : room.activeUsers){
                             if(u.isHost){
@@ -123,7 +125,7 @@ public class Main{
                         break;
                 
                     case "IMPORT_DENIED":
-                        //host denies import. route the rehection back to the specific guest
+                        //host denies import. route the rejection back to the specific guest
                         for (User u : room.activeUsers) {
                             if(u.connection.sessionId().equals(msg.senderId)){
                                 u.connection.send(new Message("IMPORT_DENIED" , "Host rejected the import.", "SERVER"));
