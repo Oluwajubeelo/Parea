@@ -4,6 +4,8 @@ public class Message {
     public String type;
     public String content;
     public String senderId;
+    public String senderName;
+    public String fileName;
 
     public Message(){}
 

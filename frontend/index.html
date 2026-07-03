@@ -131,6 +131,9 @@
 
         #setup-screen div{
             margin: 25px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         #editor-screen{
@@ -190,7 +193,7 @@
             font-family: inherit;
             font-weight: bold;
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-            animation: slideInRight 0.3s ease forwards, fadeOut 0.3s ease 3 forwards;
+            animation: slideInRight 0.3s ease forwards, fadeOut 0.3s ease 5s forwards;
         }
 
         @keyframes slideInRight {
@@ -200,6 +203,40 @@
 
         @keyframes fadeOut{
             to{opacity: 0; pointer-events: none;}
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content{
+            display: none;
+            position: absolute;
+            background-color: var(--bg-color);
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            border: 2px solid var(--text-color);
+            border-radius: 8px;
+            z-index: 200;
+            padding: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 10px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-user{
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .dropdown-user:last-child{
+            border-bottom: none;
         }
 
         #import-modal{
@@ -225,7 +262,7 @@
     <div id="import-modal">
         <div style="background: var(--bg-color); border: 2px solid var(--text-color); padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
             <h3 style="margin-top: 0; font-size: 1.5rem; text-transform: uppercase;">Import Request</h3>
-            <p style="font-weight: bold; margin-bottom: 25px; color: #555;">A guest wants to overwrite the document with a .txt file.</p>
+            <p id="import-modal-text" style="font-weight: bold; margin-bottom: 25px; color: #555;">A guest wants to overwrite the document with a .txt file.</p>
             <div style="display: flex; gap: 15px; justify-content: center;">
                 <button class="btn" id="approve-btn">Approve</button>
                 <button class="btn" id="deny-btn">Deny</button>
@@ -239,11 +276,13 @@
 
         <div id="setup-screen">
             <div class="stagger-2">
+                <input type="text" id="create-username-input" placeholder="USERNAME" autocomplete="off" maxlength="15" style="margin-bottom : 10px; display: block; margin-left: auto; margin-right: auto;">
                 <button class="btn" id="create-room-btn">Create New Room</button>
             </div>
             <p class="stagger-3" style="color: #999; font-weight: bold;">- OR -</p>
             <div class="stagger-4">
-                <input type="text" id="room-code-input" placeholder="ENTER CODE" autocomplete="off" maxlength="6">
+                <input type="text" id="join-username-input" placeholder="USERNAME" autocomplete="off" maxlength="15" style="margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
+                <input type="text" id="room-code-input" placeholder="ENTER CODE" autocomplete="off" maxlength="6" style="margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
                 <button class="btn" id="join-room-btn">Join</button>
             </div>
         </div>
@@ -251,7 +290,14 @@
         <div id="editor-screen">
             <div class="header-info">
                 <span id="room-display">ROOM: ----</span>
-                <span id="users-display" style="color: #7f8c8d; font-size: 0.9em; padding: 0 10px;">USERS: 1</span>
+
+                <div class="dropdown">
+                    <span id="users-display" style="color: #7f8c8d; font-size: 0.9em; padding: 0 10px; cursor: pointer; border-bottom: 1px dotted #7f8c8d;">USERS: 1 ▼</span>
+                    <div class="dropdown-content" id="users-list">
+
+                    </div>
+                </div>
+
                 <div>
                     <input type="file" id="file-import" accept=".txt" style="display: none;">
                     <button class="btn" id="import-btn" style="padding: 6px 12px; font-size: 14px;">Import .txt</button>
@@ -411,18 +457,21 @@
             toast.innerText = message;
             container.appendChild(toast);
 
-            setTimeout(() => toast.remove(), 3500);
+            setTimeout(() => toast.remove(), 5300);
         }
 
         const importBtn = document.getElementById('import-btn');
         const fileInput = document.getElementById('file-import');
         const importModal = document.getElementById('import-modal');
+        const importModalText = document.getElementById('import-modal-text');
         const approveBtn = document.getElementById('approve-btn');
         const denyBtn = document.getElementById('deny-btn');
 
         let isHostUser = false;
         let pendingImportText = "";
+        let myUsername = "";
         let pendingGuestId = "";
+        let pendingFileName = "";
 
         importBtn.addEventListener('click', () => fileInput.click());
 
@@ -435,11 +484,11 @@
                 const text = event.target.result;
                 if (isHostUser){
                     editor.value = text;
-                    ws.send(JSON.stringify({ type: "FORCE_OVERWRITE", content: text, senderId: "HOST"}));
+                    ws.send(JSON.stringify({ type : "FORCE_OVERWRITE", content: text, fileName: file.name, senderName: myUsername, senderId: "HOST"}));
                     showToast('📄 File imported succesfully');
                 }
                 else{
-                    ws.send(JSON.stringify({ type: "IMPORT_REQUEST", content: text, senderId: "CLIENT"}));
+                    ws.send(JSON.stringify({ type: "IMPORT_REQUEST", content: text, fileName: file.name, senderId: "CLIENT"}));
                     showToast('⏳ Sent import request to the Host...');
                 }
             };
@@ -452,8 +501,8 @@
             setTimeout(() => importModal.style.display = 'none', 300);
 
             editor.value = pendingImportText;
-            ws.send(JSON.stringify({type: "FORCE_OVERWRITE", content: pendingImportText, senderId: "HOST"}));
-            showToast('Import approved and applied.')
+            ws.send(JSON.stringify({type: "FORCE_OVERWRITE", content: pendingImportText, fileName: pendingFileName, senderName:myUsername, senderId: "HOST"}));
+            showToast('✅ Import approved and applied.')
         });
 
         denyBtn.addEventListener('click', () =>{
@@ -464,17 +513,29 @@
         })
 
         let ws = null;
+        let pingInterval;
 
         const setupScreen = document.getElementById('setup-screen');
         const editorScreen= document.getElementById('editor-screen');
         const createBtn = document.getElementById('create-room-btn');
         const joinBtn = document.getElementById('join-room-btn');
         const roomInput = document.getElementById('room-code-input');
+        const createUsernameInput = document.getElementById('create-username-input');
+        const joinUsernameInput = document.getElementById('join-username-input')
         const editor = document.getElementById('document-editor');
         const roomDisplay = document.getElementById('room-display');
         const roleDisplay = document.getElementById('role-display');
+        const usersListDisplay = document.getElementById('users-list');
+        const usersDisplay = document.getElementById('users-display');
+        
 
         createBtn.addEventListener('click', async() => {
+            myUsername = createUsernameInput.value.trim();
+            if (!myUsername){
+                showToast('⚠️ PLEASE ENTER A USERNAME');
+                return;
+            }
+
             try{
                 const response = await fetch ('/api/create-room', {method: 'POST'});
                 if (!response.ok) throw new Error("Server rejected request");
@@ -482,23 +543,29 @@
                 connectToRoom(data.roomCode);
             }
             catch(error){
-                showToast('SERVER ERROR: Is the Java backend even running?');
+                showToast('⚠️ SERVER ERROR: Is the Java backend even running?');
             }
         });
 
         joinBtn.addEventListener('click', () => {
+            myUsername = joinUsernameInput.value.trim();
+            if (!myUsername){
+                showToast('⚠️ PLEASE ENTER A USERNAME');
+                return;
+            }
+
             const code = roomInput.value.trim().toUpperCase();
             if (code.length === 6){
                 connectToRoom(code);
             }
             else{
-                showToast('Room code must be 6 characters');
+                showToast('⚠️ Room code must be 6 characters');
             }
         });
 
         function connectToRoom(roomCode) {
             const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-            const wsUrl = protocol + window.location.host + '/ws/' + roomCode;
+            const wsUrl = protocol + window.location.host + '/ws/' + roomCode + '?username=' + encodeURIComponent(myUsername);
 
             ws = new WebSocket(wsUrl);
 
@@ -511,6 +578,12 @@
 
                 roomDisplay.innerText = 'ROOM: ' + roomCode;
                 showToast('Connected to server');
+
+                pingInterval = setInterval(() =>{
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: "PING", content: "", senderId: "CLIENT"}));
+                    }
+                }, 30000);
             };
 
             ws.onmessage = (event) => {
@@ -521,12 +594,26 @@
                         editor.value = msg.content;
                         editor.disabled = false;
                         editor.placeholder = "Start typing here...";
-                        const isHost = (msg.senderId === "true");
-                        roleDisplay.innerText = isHost ? "ROLE: HOST" : "ROLE: GUEST";
+
+                        isHostUser = (msg.senderId === "true");
+                        roleDisplay.innerText = myUsername + " (" + (isHostUser ? "HOST" : "GUEST") + ")";
                         break;
 
-                    case "USER_COUNT_UPDATE":
-                        userDisplay.innerText = "USERS: " + msg.content;
+                    case "USER_LIST_UPDATE":
+                        const users = JSON.parse(msg.content);
+                        usersDisplay.innerText = "USERS: " + users.length + " ▼";
+
+                        usersListDisplay.innerHTML = "";
+                        users.forEach(u =>{
+                            const userDiv = document.createElement("div");
+                            userDiv.className = "dropdown-user";
+                            userDiv.innerText = u.username + (u.isHost ? " (HOST)" : " (GUEST)");
+                            usersListDisplay.appendChild(userDiv);
+                        })
+                        break;
+
+                    case "NOTIFICATION":
+                        showToast('📢 ' + msg.content);
                         break;
                     
                     case "TEXT_UPDATE":
@@ -537,13 +624,16 @@
                         break;
                     
                     case "PROMOTED_TO_HOST":
-                        roleDisplay.innerText = "ROLE: HOST";
+                        isHostUser = true;
+                        roleDisplay.innerText = myUsername + " (HOST)";
                         showToast('👑 ' + msg.content);
                         break;
 
                     case "IMPORT_REQUEST":
                         pendingImportText = msg.content;
                         pendingGuestId = msg.senderId;
+                        pendingFileName = msg.fileName;
+                        importModalText.innerText = `Guest ${msg.senderName} wants to import '${msg.fileName}'.`;
                         importModal.style.display='flex';
                         setTimeout(() => importModal.style.opacity = '1',10);
                         break;
@@ -558,12 +648,14 @@
                 isConnected = false;
                 editor.disabled = true;
 
+                clearInterval(pingInterval);
+
                 if (event.code === 1008){
-                    showToast('Room does not exist or expired.');
+                    showToast('⚠️ Room does not exist or expired.');
                     setTimeout(() => location.reload(), 2000);
                 }
                 else{
-                    showToast('Disconnected from the server.');
+                    showToast('🔌 Disconnected from the server.');
                 }
             };
         }

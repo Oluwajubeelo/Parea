@@ -7,9 +7,27 @@ import parea.core.RoomManager;
 import parea.core.User;
 
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Main{
     private static final RoomManager roomManager = new RoomManager();
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    private static void broadcastUserList(Room room){
+        try{
+            List<Map<String, Object>> userList = new ArrayList<>();
+            for (User u : room.activeUsers){
+                userList.add(Map.of("username", u.username, "isHost", u.isHost));
+            }
+            String jsonList = mapper.writeValueAsString(userList);
+            room.broadcastToEveryone(new Message("USER_LIST_UPDATE", jsonList, "SERVER"));
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args){
         int port = System.getenv("PORT") !=null ? Integer.parseInt(System.getenv("PORT")) : 8080;
@@ -31,6 +49,7 @@ public class Main{
         app.ws("/ws/{roomCode}", ws -> {
 
             ws.onConnect(ctx -> {
+                ctx.session.setIdleTimeout(java.time.Duration.ofMinutes(30));
                 String roomCode = ctx.pathParam("roomCode").toUpperCase();
                 Room room = roomManager.getRoom(roomCode);
 
@@ -39,13 +58,16 @@ public class Main{
                     return;
                 }
 
+                String username =  ctx.queryParam("username");
+                if (username == null || username.isBlank()) username = "Anonymous";
+
                 boolean isHost = room.activeUsers.isEmpty();
-                User user = new User(ctx, isHost);
+                User user = new User(ctx, isHost, username);
                 room.addUser(user);
 
                 ctx.send(new Message("ROOM_JOINED", room.documentText, String.valueOf(isHost)));
 
-                room.broadcastToEveryone(new Message("USER_COUNT_UPDATE", String.valueOf(room.activeUsers.size()), "SERVER"));
+                broadcastUserList(room);
 
                 System.out.println("User joined room " + roomCode + ". isHost: " + isHost);
             });
@@ -57,27 +79,48 @@ public class Main{
 
                 Message msg = ctx.messageAsClass(Message.class);
                 switch(msg.type){
-                    case "TEXT_UPDATE":
-                    case "FORCE_OVERWRITE":
+                    case "PING":
+                        break;
 
-                    room.documentText = msg.content;
-                    for (User u : room.activeUsers) {
-                        if (!u.connection.sessionId().equals(ctx.sessionId())){
-                            u.send(ctx.message());
+                    case "TEXT_UPDATE":
+                        room.documentText = msg.content;
+                        for(User u : room.activeUsers) {
+                            if (!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
                         }
-                    }
-                    break;
+                        break;
+                    
+                    case "FORCE_OVERWRITE":
+                        room.documentText = msg.content;
+                        for (User u : room.activeUsers) {
+                            if (!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        if(msg.fileName !=null){
+                            Message notification = new Message("NOTIFICATION", "Host " + msg.senderName + " imported '" + msg.fileName + "'", "SERVER");
+                            room.broadcastToEveryone(notification);
+                            }
+                        break;
                 
-                case "IMPORT_REQUEST":
-                    //route this request only to the host
-                    msg.senderId = ctx.sessionId();
-                    for(User u:room.activeUsers){
-                        if(u.isHost){
-                            u.connection.send(msg);
-                            break;
+                    case "IMPORT_REQUEST":
+                        //route this request only to the host
+                        
+                        // for(User u:room.activeUsers){
+                        //     if(u.connection.sessionId().equals(ctx.sessionId())){
+                        //         msg.senderName = u.username;
+
+                        //     }
+                        // }
+                        msg.senderId = ctx.sessionId();
+                        for(User u : room.activeUsers){
+                            if(u.isHost){
+                                u.connection.send(msg);
+                                break;
+                            }
                         }
-                    }
-                    break;
+                        break;
                 
                     case "IMPORT_DENIED":
                         //host denies import. route the rehection back to the specific guest
@@ -108,20 +151,20 @@ public class Main{
 
                 if (userWhoLeft !=null){
                     room.removeUser(userWhoLeft);
-                    System.out.println("User left room " + roomCode);
+                    // System.out.println("User left room " + roomCode);
                     
                     if(room.activeUsers.isEmpty()){
                         roomManager.destroyRoom(roomCode);
                     }
 
                     else {
-                        room.broadcastToEveryone(new Message ("USER_COUNT_UPDATE", String.valueOf(room.activeUsers.size()), "SERVER"));
+                        broadcastUserList(room);
 
                         if(userWhoLeft.isHost){
                             User newHost = room.activeUsers.get(0);
                             newHost.isHost = true;
                             newHost.connection.send(new Message ("PROMOTED_TO_HOST","You are now the room host.", "SERVER"));
-                            System.out.println("Host transferred in room" + roomCode);
+                            // System.out.println("Host transferred in room" + roomCode);
                         }
                         if (room.activeUsers.size() == 1){
                         room.activeUsers.get(0).connection.send(new Message ("LAST_USER_WARNING", "", "SERVER"));
