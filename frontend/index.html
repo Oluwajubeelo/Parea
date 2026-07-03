@@ -301,6 +301,7 @@
                 <div>
                     <input type="file" id="file-import" accept=".txt" style="display: none;">
                     <button class="btn" id="import-btn" style="padding: 6px 12px; font-size: 14px;">Import .txt</button>
+                    <button class="btn" id="leave-btn" style="padding: 6px 12px; font-size: 14px; margin-left: 10px; background-color: #ff4757; color: white; border: none;">Leave</button>
                 </div>
                 <span id="role-display">ROLE: ----</span>
             </div>
@@ -466,12 +467,14 @@
         const importModalText = document.getElementById('import-modal-text');
         const approveBtn = document.getElementById('approve-btn');
         const denyBtn = document.getElementById('deny-btn');
+        const leaveBtn = document.getElementById('leave-btn');
 
         let isHostUser = false;
         let pendingImportText = "";
         let myUsername = "";
         let pendingGuestId = "";
         let pendingFileName = "";
+        let isLastUser = false;
 
         importBtn.addEventListener('click', () => fileInput.click());
 
@@ -511,6 +514,42 @@
 
             ws.send(JSON.stringify({ type: "IMPORT_DENIED", content: "Host rejected the import.", senderId: pendingGuestId}));
         })
+        leaveBtn.addEventListener('click', async () => {
+            if (isLastUser && editor.value.trim() !== ""){
+                try {
+                    if (window.showSaveFilePicker){
+                        const fileHandle = await window.showSaveFilePicker({
+                            suggestedName: 'Parea_Backup.txt',
+                            types: [{
+                                description: 'Text Document',
+                                accept: { 'text/plain': ['.txt']},
+                            }],
+                        });
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(editor.value);
+                        await writable.close();
+                        showToast('💾 Backup saved successfully.');
+                    }
+                    else{
+                        const blob = new Blob([editor.value], { type: 'text/plain'});
+                        const url = URL.createdObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'Parea_Backup.txt'
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    }
+                }
+                catch(error){
+                    if(error.name !== "AbortError"){
+                        showToast('❌ Failed to save backup.');
+                    }
+                }
+            }
+
+            if (ws) ws.close();
+            location.reload();
+        });
 
         let ws = null;
         let pingInterval;
@@ -603,6 +642,10 @@
                         const users = JSON.parse(msg.content);
                         usersDisplay.innerText = "USERS: " + users.length + " ▼";
 
+                        if(users.length > 1){
+                            isLastUser = false;
+                        }
+
                         usersListDisplay.innerHTML = "";
                         users.forEach(u =>{
                             const userDiv = document.createElement("div");
@@ -627,6 +670,11 @@
                         isHostUser = true;
                         roleDisplay.innerText = myUsername + " (HOST)";
                         showToast('👑 ' + msg.content);
+                        break;
+
+                    case "LAST_USER_WARNING":
+                        isLastUser = true;
+                        showToast('⚠️ You are the last user. Click "Leave" to save a backup.');
                         break;
 
                     case "IMPORT_REQUEST":
