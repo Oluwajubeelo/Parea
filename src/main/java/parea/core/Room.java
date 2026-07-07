@@ -1,18 +1,19 @@
 package parea.core;
 
-import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Room {
     public String roomCode;
     public String documentText;
+    public CopyOnWriteArrayList<User> activeUsers;
 
-    public List<User> activeUsers;
+    public String password;
 
-    public Room(String roomCode){
+    public Room(String roomCode, String password){
         this.roomCode=roomCode;
         this.documentText="";
         this.activeUsers=new CopyOnWriteArrayList<>();
+        this.password = password;
     }
 
     public void addUser(User user){

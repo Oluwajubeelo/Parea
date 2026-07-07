@@ -11,13 +11,14 @@ public class RoomManager {
         this.activeRooms = new ConcurrentHashMap<>();
     }
     //generates a room, a 6-character code and saves it in RAM
-    public Room createNewRoom(){
+    public Room createNewRoom(String password){
         String code = UUID.randomUUID().toString().substring(0,6).toUpperCase();
 
-        Room newRoom = new Room(code);
+        Room newRoom = new Room(code, password);
         activeRooms.put(code, newRoom);
 
-        System.out.println("New Room Created: " + code);
+        boolean isSecured = (password != null && !password.isBlank());
+        System.out.println("New Room Created: " + code + (isSecured ? " [SECURED]" : ""));
         return newRoom;
     }
 

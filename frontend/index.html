@@ -9,12 +9,12 @@
             --bg-color: #ffffff;
             --text-color: #000000;
             --border-color: #e0e0e0;
-            --hover-bg: #f5f5f5;
+            --nover-bg: #f5f5f5;
             --accent-black: #111111;
         }
 
-        body {
-            font-family: 'Courier New', Courier, monospace;
+        body{
+            font-family: 'Courier New', 'Courier New', Courier, monospace;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -37,15 +37,14 @@
             pointer-events: none;
         }
 
-        @keyframes slideUp{
-            to { opacity: 1; transform: translateY(0);}
+        @keyframes slideUp {
+            to{ opacity: 1; transform: translateY(0);}
         }
 
         .stagger-1 { opacity: 0; transform: translateY(30px); animation: slideUp 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;}
         .stagger-2 { opacity: 0; transform: translateY(30px); animation: slideUp 1.0s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards;}
         .stagger-3 { opacity: 0; transform: translateY(30px); animation: slideUp 1.0s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;}
         .stagger-4 { opacity: 0; transform: translateY(30px); animation: slideUp 1.0s cubic-bezier(0.16, 1, 0.3, 1) 2.8s forwards;}
-
 
         .cursor{
             display: inline-block;
@@ -54,7 +53,7 @@
             animation: blink 1s step-end infinite;
         }
 
-        @keyframes blink {
+        @keyframes blink{
             50% {opacity: 0;}
         }
 
@@ -93,7 +92,7 @@
         .btn{
             background-color: var(--bg-color);
             color: var(--text-color);
-            border: 2px solid var (--text-color);
+            border: 2px solid var(--text-color);
             border-radius: 8px;
             padding: 12px 24px;
             cursor: pointer;
@@ -105,11 +104,11 @@
         }
 
         .btn:hover{
-            background-color: var(--text-color);
+            background-color: var(--accent-black);
             color: var(--bg-color);
         }
 
-        input[type="text"]{
+        input[type="text"], input[type="password"]{
             padding: 12px;
             font-size: 16px;
             font-family: inherit;
@@ -118,18 +117,68 @@
             text-align: center;
             outline: none;
             transition: border-color 0.2s;
+            box-sizing: border-box;
+            width: 260px;
+            max-width: 100%;
         }
 
-        input[type="text"]:focus {
+        input[type="text"]:focus, input[type="password"]:focus {
             border-color: var(--text-color);
         }
+
+        .input-row{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .password-wrapper {
+            position: relative;
+            max-width: 100%;
+            width: 260px;
+        }
+
+        .password-wrapper input {
+            padding-right: 40px !important;
+            margin-bottom: 0 !important;
+            width: 100% !important;
+        }
+
+        .password-toggle{
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding : 0;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            outline: none;
+        }
+
+        .password-toggle:hover{
+            opacity: 1;
+        }
+/* 
+        .input-row input[type="text"],
+        .input-row .password-wrapper {
+            margin-bottom: 0 !important;
+        } */
 
         #setup-screen{
             text-align: center;
             padding: 20px 0;
         }
 
-        #setup-screen div{
+        #setup-screen .stagger-2,
+        #setup-screen .stagger-4{
             margin: 25px 0;
             display: flex;
             flex-direction: column;
@@ -137,20 +186,20 @@
         }
 
         #editor-screen{
-            display: none
+            display: none;
         }
 
         .header-info{
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-weight: bold;
             border-bottom: 1px dashed var(--border-color);
             padding-bottom: 10px;
         }
 
-        textarea{
+        #document-editor{
             width: 100%;
             height: 55vh;
             padding: 20px;
@@ -159,20 +208,65 @@
             background-color: transparent;
             border: 2px solid var(--text-color);
             border-radius: 12px;
-            resize: none;
+            overflow-y: auto;
             box-sizing: border-box;
             outline: none;
             line-height: 1.5;
+            text-align: left;
         }
 
-        textarea:focus{
+        #document-editor:focus{
             box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
         }
 
-        textarea:disabled{
+        #document-editor[contenteditable="false"]{
             background-color: #fafafa;
             border-color: var(--border-color);
+            color: #999;
+        }
+
+        #document-editor:empty:before {
+            content: attr(placeholder);
             color: #999
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 10px;
+            background: #fdfdfd;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .tool-btn{
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: var(--text-color);
+            color: var(--bg-color);
+        }
+
+        input[type="color"] {
+            border: none;
+            border-radius: 4px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            padding: 0;
+            background: none;
         }
 
         #toast-container{
@@ -196,13 +290,9 @@
             animation: slideInRight 0.3s ease forwards, fadeOut 0.3s ease 5s forwards;
         }
 
-        @keyframes slideInRight {
+        @keyframes slideInRight{
             from{transform: translateX(100%); opacity: 0;}
             to{transform: translateX(0); opacity: 1;}
-        }
-
-        @keyframes fadeOut{
-            to{opacity: 0; pointer-events: none;}
         }
 
         .dropdown {
@@ -225,7 +315,7 @@
             margin-top: 10px;
         }
 
-        .dropdown:hover .dropdown-content {
+        .dropdown:hover .dropdown-content{
             display: block;
         }
 
@@ -242,8 +332,10 @@
         #import-modal{
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             background: rgba(255,255,255,0.9);
             z-index: 300;
             justify-content: center;
@@ -254,15 +346,14 @@
     </style>
 </head>
 <body>
-
     <canvas id="bg-canvas"></canvas>
-    
+
     <div id="toast-container"></div>
 
     <div id="import-modal">
         <div style="background: var(--bg-color); border: 2px solid var(--text-color); padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
             <h3 style="margin-top: 0; font-size: 1.5rem; text-transform: uppercase;">Import Request</h3>
-            <p id="import-modal-text" style="font-weight: bold; margin-bottom: 25px; color: #555;">A guest wants to overwrite the document with a .txt file.</p>
+            <p id="import-modal-text" style="font-weight: bold; margin-bottom: 25px; color: #555;">A guest wants to overwrite the document with an .html file.</p>
             <div style="display: flex; gap: 15px; justify-content: center;">
                 <button class="btn" id="approve-btn">Approve</button>
                 <button class="btn" id="deny-btn">Deny</button>
@@ -276,13 +367,29 @@
 
         <div id="setup-screen">
             <div class="stagger-2">
-                <input type="text" id="create-username-input" placeholder="USERNAME" autocomplete="off" maxlength="15" style="margin-bottom : 10px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="input-row">
+                    <input type="text" id="create-username-input" placeholder="USERNAME" autocomplete="off" maxlength="15">
+                    <div class="password-wrapper">
+                        <input type="password" id="create-password-input" placeholder="PASSWORD (OPTIONAL)" autocomplete="off" maxlength="20">
+                        <button type="button" class="password-toggle" id="toggle-create-pw" tabindex="-1" title="Toggle Visibility">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
+                </div>
                 <button class="btn" id="create-room-btn">Create New Room</button>
             </div>
-            <p class="stagger-3" style="color: #999; font-weight: bold;">- OR -</p>
+            <p class="stagger-3" style="color: #999; font-weight: bold; margin:20px 0;">- OR -</p>
             <div class="stagger-4">
-                <input type="text" id="join-username-input" placeholder="USERNAME" autocomplete="off" maxlength="15" style="margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
-                <input type="text" id="room-code-input" placeholder="ENTER CODE" autocomplete="off" maxlength="6" style="margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
+                <div class="input-row">
+                    <input type="text" id="join-username-input" placeholder="USERNAME" autocomplete="off" maxlength="15">
+                    <input type="text" id="room-code-input" placeholder="ENTER CODE" autocomplete="off" maxlength="6">
+                </div>
+                <div class="password-wrapper" style="margin-bottom: 15px;">
+                    <input type="password" id="join-password-input" placeholder="PASSWORD (IF REQUIRED)" autocomplete="off" maxlength="20">
+                    <button type="button" class="password-toggle" id="toggle-join-pw" tabindex="-1" title="Toggle Visibility">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>                      
+                    </button>
+                </div>
                 <button class="btn" id="join-room-btn">Join</button>
             </div>
         </div>
@@ -291,36 +398,44 @@
             <div class="header-info">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span id="room-display">ROOM: ----</span>
-                    <button id="copy-code-btn" class="btn" style="padding: 2px 8px; font-size: 12px; display: none;" title="Copy Room Code">Copy</button>
+                    <button id="copy-code-btn" class="btn" style="padding: 2px 8px; font-size: 12px; display: none;" title="Copy Room Code">COPY</button>
                 </div>
 
                 <div class="dropdown">
-                    <span id="users-display" style="color: #7f8c8d; font-size: 0.9em; padding: 0 10px; cursor: pointer; border-bottom: 1px dotted #7f8c8d;">USERS: 1 ▼</span>
-                    <div class="dropdown-content" id="users-list">
-
-                    </div>
+                    <span id="users-display" style="color: #7f8c8d; font-size: 0.9rem; padding: 0 10px; cursor: pointer; border-bottom: 1px dotted #7f8c8d;">USERS: 1 ▼</span>
+                    <div class="dropdown-content" id="users-list"></div>
                 </div>
 
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="file" id="file-import" accept=".txt" style="display: none;">
-                    <button class="btn" id="import-btn" style="padding: 6px 12px; font-size: 14px;">Import .txt (MAX 5MB)</button>
-                    <button class="btn" id="leave-btn" style="padding: 6px 12px; font-size: 14px; background: #ff4d4d; color: white;">Leave</button>
+                    <input type="file" id="file-import" accept=".html" style="display: none;">
+
+                    <button class="btn" id="import-btn" style="padding: 6px 12px; font-size: 14px;">IMPORT .HTML / .TXT (MAX 5MB)</button>
+                    <button class="btn" id="leave-btn" style="padding: 6px 12px; font-size: 14px; background: #ff4d4d; color: white; border-color: #ff4d4d;">LEAVE</button>
                 </div>
                 <span id="role-display">ROLE: ----</span>
-            </div>                    
-            <textarea id="document-editor" placeholder="Awaiting connection..." disabled></textarea>
-            <div id="typing-indicator" style="color: #7f8c8d; font-size: 0.85em; font-style: italic; min-height: 20px; margin-top: 5px;"></div>
+            </div>
+
+            <div class="toolbar" id="format-toolbar" style="display: none;">
+                <button class="tool-btn" onclick="formatText('bold')" title="Bold"><b>B</b></button>
+                <button class="tool-btn" onclick="formatText('italic')" title="Italic"><i>I</i></button>
+                <button class="tool-btn" onclick="formatText('underline')" title="Underline"><u>U</u></button>
+                <input type="color" id="color-picker" title="Text Color" onchange="formatText('foreColor', this.value)">
+            </div>
+
+            <div id="document-editor" contenteditable="false" placeholder="Awaiting connection..."></div>
+
+            <div id="typing-indicator" style="color: #7f8c8d; font-size: 0.85rem; font-style: italic; min-height: 20px; margin-top: 5px;"></div>
         </div>
     </div>
 
     <script>
         setTimeout(() => {
-            const mottoStr = "think together. type together."
+            const mottoStr = "think together. write together."
             const el = document.getElementById('motto-text')
             let i = 0;
 
             function typeWriter(){
-                if (i<mottoStr.length){
+                if(i<mottoStr.length){
                     el.innerHTML += mottoStr.charAt(i);
                     i++;
                     setTimeout(typeWriter, 50);
@@ -341,10 +456,9 @@
         resizeCanvas();
 
         const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789{}[]();:<>+=-*&%$#@!/?';
-        const particles = [];
-        const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 12000);
-
-        const mouse = {x: -1000, y: -1000, radius: 120};
+        const particles= [];
+        const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 24000);
+        const mouse = {x: -1000, y: -1000, radius:120};
 
         window.addEventListener('mousemove', (e)=>{
             mouse.x = e.clientX;
@@ -364,7 +478,7 @@
                 this.size = Math.random() * 12 + 10;
                 this.baseVy = -(Math.random() * 0.4 + 0.1);
                 this.vy = this.baseVy;
-                this.vx = 0;
+                this.vx= 0;
             }
 
             update(activeForces){
@@ -379,12 +493,12 @@
                         this.vy += (dy / dist) * power * 1.5;
                     }
                 });
-
+                
                 this.vx *= 0.92;
                 this.vy = this.vy * 0.92 + this.baseVy * 0.08;
 
                 this.x += this.vx;
-                this.y +=this.vy;
+                this.y += this.vy;
 
                 if(this.y <-50){
                     this.y = height + 50;
@@ -393,15 +507,13 @@
                     this.vy = this.baseVy;
                     this.char = charSet[Math.floor(Math.random() * charSet.length)];
                 }
-                if (this.x < -50) this.x = width + 50;
+                if(this.x < -50) this.x = width + 50;
                 if(this.x > width + 50) this.x = -50;
-
             }
 
             draw(){
-                ctx.font = `bold ${this.size}px monospace`; //to adjust boldness of letters
-                ctx.fillStyle = `rgba(0,0,0,${particleOpacity})`; //to adjust opacity of letters
-
+                ctx.font = `bold ${this.size}px monospace`;
+                ctx.fillStyle = `rgba(0,0,0,${particleOpacity})`;
                 ctx.fillText(this.char, this.x, this.y);
             }
         }
@@ -410,20 +522,20 @@
         let isConnected = false;
         let particleOpacity = 0.35;
 
-        for (let i =0; i < particleCount; i++){
+        for (let i = 0; i < particleCount; i++){
             particles.push(new Particle());
         }
 
         function animate(){
             ctx.clearRect(0,0, width, height);
 
-            if (isConnected){
-                particleOpacity -=0.01;
-                if(particleOpacity < 0) particleOpacity = 0;
+            if(isConnected){
+                particleOpacity -= 0.01;
+                if(particleOpacity > 0.85) particleOpacity = 0.85;
             }
             else{
-                particleOpacity +=0.01;
-                if (particleOpacity > 0.85) particleOpacity = 0.85;
+                particleOpacity += 0.01;
+                if(particleOpacity > 0.85) particleOpacity = 0.85;
             }
 
             activeForces = [];
@@ -432,7 +544,7 @@
                 activeForces.push({x: mouse.x, y: mouse.y, radius: mouse.radius});
             }
 
-            const uiElements=document.querySelectorAll('.btn, input[type="text"], textarea');
+            const uiElements=document.querySelectorAll('.btn, input[type="text"], input[type="password"], #document-editor');
             uiElements.forEach(el =>{
                 const rect = el.getBoundingClientRect();
                 if(rect.width > 0){
@@ -443,7 +555,6 @@
                     });
                 }
             });
-
 
             particles.forEach(p => {
                 if(particleOpacity>0){
@@ -461,8 +572,75 @@
             toast.className = 'toast';
             toast.innerText = message;
             container.appendChild(toast);
-
             setTimeout(() => toast.remove(), 5300);
+        }
+
+        function formatText(command, value = null){
+            document.execCommand(command, false, value);
+            document.getElementById('document-editor').focus();
+
+            if (ws && ws.readyState === WebSocket.OPEN){
+                const message = {
+                    type: "TEXT_UPDATE",
+                    content: document.getElementById('document-editor').innerHTML,
+                    senderId: "CLIENT"
+                };
+                ws.send(JSON.stringify(message));
+            }
+        }
+
+        function getCaretPosition(element){
+            let caretOffset = 0;
+            const doc = element.ownerDocument || element.document;
+            const win = doc.defaultView || doc.parentWindow;
+            const sel = win.getSelection();
+            if (sel.rangeCount > 0){
+                const range = win.getSelection().getRangeAt(0);
+                const preCaretRange = range.cloneRange();
+                preCaretRange.selectNodeContents(element);
+                preCaretRange.setEnd(range.endContainer, range.endOffset);
+                caretOffset = preCaretRange.toString().length;
+            }
+            return caretOffset;
+        }
+
+        function setCaretPosition(element, offset){
+            const doc = element.ownerDocument || element.document;
+            const win = doc.defaultView || doc.parentWindow;
+            const sel = win.getSelection();
+            const range = doc.createRange();
+
+            let currentOffset = 0;
+            let stop = false;
+
+            function traverseNodes(node) {
+                if (stop) return;
+                if (node.nodeType === 3) {
+                    let nodeLength = node.length;
+                    if (currentOffset + nodeLength >= offset) {
+                        range.setStart(node, offset -currentOffset);
+                        range.setEnd(node, offset - currentOffset);
+                        stop = true;
+                    }
+                    else{
+                        currentOffset += nodeLength;
+                    }
+                }
+                else{
+                    for(let i =0; i < node.childNodes.length; i++){
+                        traverseNodes(node.childNodes[i]);
+                    }
+                }
+            }
+            traverseNodes(element);
+
+            if(!stop) {
+                range.selectNodeContents(element);
+                range.collapse(false);
+            }
+
+            sel.removeAllRanges();
+            sel.addRange(range);
         }
 
         const importBtn = document.getElementById('import-btn');
@@ -474,7 +652,7 @@
         const leaveBtn = document.getElementById('leave-btn');
 
         let isHostUser = false;
-        let pendingImportText = "";
+        let pendingImportText ="";
         let myUsername = "";
         let pendingGuestId = "";
         let pendingFileName = "";
@@ -488,8 +666,8 @@
             const file = e.target.files[0];
             if (!file) return;
 
-            const maxSize = 5*1024*1024;
-            if (file.size > maxSize){
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
                 showToast('⚠️ File is too large! Maximum limit is 5MB.');
                 e.target.value = '';
                 return;
@@ -499,13 +677,13 @@
             reader.onload = (event) => {
                 const text = event.target.result;
                 if (isHostUser){
-                    editor.value = text;
-                    ws.send(JSON.stringify({ type : "FORCE_OVERWRITE", content: text, fileName: file.name, senderName: myUsername, senderId: "HOST"}));
+                    editor.innerHTML = text;
+                    ws.send(JSON.stringify({ type: "FORCE_OVERWRITE", content: text, fileName: file.name, senderName: myUsername, senderId: "HOST"}));
                     showToast('📄 File imported succesfully');
                 }
                 else{
                     ws.send(JSON.stringify({ type: "IMPORT_REQUEST", content: text, fileName: file.name, senderId: "CLIENT"}));
-                    showToast('⏳ Sent import request to the Host...');
+                    showToast('⏳ Sent import request to the Host...')
                 }
             };
             reader.readAsText(file);
@@ -514,53 +692,54 @@
 
         approveBtn.addEventListener('click', () => {
             importModal.style.opacity = '0';
-            setTimeout(() => importModal.style.display = 'none', 300);
+            setTimeout(() => importModal.style.display = 'none' , 300);
 
-            editor.value = pendingImportText;
-            ws.send(JSON.stringify({type: "FORCE_OVERWRITE", content: pendingImportText, fileName: pendingFileName, senderName:myUsername, senderId: "HOST"}));
-            showToast('✅ Import approved and applied.')
+            editor.innerHTML = pendingImportText;
+            ws.send(JSON.stringify({type: "FORCE_OVERWRITE", content: pendingImportText, fileName: pendingFileName, senderName: myUsername, senderId: "HOST"}));
+            showToast('✅ Import approved and appplied.')
         });
 
-        denyBtn.addEventListener('click', () =>{
+        denyBtn.addEventListener('click', () => {
             importModal.style.opacity = '0';
             setTimeout(() => importModal.style.display = 'none', 300);
 
             ws.send(JSON.stringify({ type: "IMPORT_DENIED", content: "Host rejected the import.", senderId: pendingGuestId}));
         })
+
         leaveBtn.addEventListener('click', async () => {
-            if (isLastUser && editor.value.trim() !== ""){
+            if(isLastUser && editor.innerText.trim() !== ""){
                 try {
                     if (window.showSaveFilePicker){
                         const fileHandle = await window.showSaveFilePicker({
-                            suggestedName: 'Parea_Backup.txt',
+                            suggestedName:'Parea_Backup.html',
                             types: [{
-                                description: 'Text Document',
-                                accept: { 'text/plain': ['.txt']},
+                                description: 'HTML Document',
+                                accept: {'text/html': ['.html']},
                             }],
                         });
                         const writable = await fileHandle.createWritable();
-                        await writable.write(editor.value);
+                        await writable.write(editor.innerHTML);
                         await writable.close();
-                        showToast('💾 Backup saved successfully.');
+                        showToast('💾 Backup saved successfully.')
                     }
                     else{
-                        const blob = new Blob([editor.value], { type: 'text/plain'});
+                        const blob = new Blob([editor.innerHTML], {type: 'text'});
                         const url = URL.createdObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = 'Parea_Backup.txt'
+                        a.download = 'Parea_Backup.html'
                         a.click();
-                        URL.revokeObjectURL(url);
+                        URL.revokeObjectURL(url);    
                     }
                 }
                 catch(error){
                     if(error.name !== "AbortError"){
-                        showToast('❌ Failed to save backup.');
+                        showToast('❌ Failed to save backup.')
                     }
                 }
             }
 
-            if (ws) ws.close();
+            if(ws) ws.close();
             location.reload();
         });
 
@@ -568,12 +747,15 @@
         let pingInterval;
 
         const setupScreen = document.getElementById('setup-screen');
-        const editorScreen= document.getElementById('editor-screen');
+        const editorScreen = document.getElementById('editor-screen');
+        const formatToolbar = document.getElementById('format-toolbar');
         const createBtn = document.getElementById('create-room-btn');
         const joinBtn = document.getElementById('join-room-btn');
         const roomInput = document.getElementById('room-code-input');
         const createUsernameInput = document.getElementById('create-username-input');
-        const joinUsernameInput = document.getElementById('join-username-input')
+        const createPasswordInput = document.getElementById('create-password-input');
+        const joinPasswordInput = document.getElementById('join-password-input');
+        const joinUsernameInput = document.getElementById('join-username-input');
         const editor = document.getElementById('document-editor');
         const roomDisplay = document.getElementById('room-display');
         const roleDisplay = document.getElementById('role-display');
@@ -581,24 +763,55 @@
         const usersDisplay = document.getElementById('users-display');
         const copyCodeBtn = document.getElementById('copy-code-btn');
         const typingIndicator = document.getElementById('typing-indicator');
+        const toggleCreatePw = document.getElementById('toggle-create-pw');
+        const toggleJoinPw = document.getElementById('toggle-join-pw');
+
+        const eyeOpenSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        const eyeClosedSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>`;
+
+        function setupPasswordToggle(toggleBtn, inputEl){
+            toggleBtn.addEventListener('click', () => {
+                if(inputEl.type === 'password'){
+                    inputEl.type= 'text';
+                    toggleBtn.innerHTML = eyeClosedSVG;
+                }
+                else{
+                    inputEl.type = 'password';
+                    toggleBtn.innerHTML= eyeOpenSVG;
+                }
+            });
+        }
+
+        setupPasswordToggle(toggleCreatePw, createPasswordInput);
+        setupPasswordToggle(toggleJoinPw, joinPasswordInput);
 
         copyCodeBtn.addEventListener('click', () => {
-            if(currentRoomCode){
-                navigator.clipboard.writeText(currentRoomCode).then(() => {
-                    showToast('📋 Room code copied to clipboard!');
-                });
+            if(currentRoomCode) {
+                const tempInput = document.createElement("input");
+                tempInput.value = currentRoomCode;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+                showToast('📋 Room code copied to clipboard!')
             }
         });
 
         createBtn.addEventListener('click', async() => {
             myUsername = createUsernameInput.value.trim();
-            if (!myUsername){
+            const myPassword = createPasswordInput.value.trim();
+
+            if(!myUsername){
                 showToast('⚠️ PLEASE ENTER A USERNAME');
                 return;
             }
 
             try{
-                const response = await fetch ('/api/create-room', {method: 'POST'});
+                const response = await fetch ('/api/create-room', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json'},
+                    body: JSON.stringify({ password: myPassword})
+                });
                 if (!response.ok) throw new Error("Server rejected request");
                 const data = await response.json();
                 connectToRoom(data.roomCode);
@@ -610,39 +823,36 @@
 
         joinBtn.addEventListener('click', () => {
             myUsername = joinUsernameInput.value.trim();
-            if (!myUsername){
+            const myPassword = joinPasswordInput.value.trim();
+
+            if(!myUsername){
                 showToast('⚠️ PLEASE ENTER A USERNAME');
                 return;
             }
 
             const code = roomInput.value.trim().toUpperCase();
-            if (code.length === 6){
-                connectToRoom(code);
+            if(code.length === 6){
+                connectToRoom(code, myPassword);
             }
             else{
-                showToast('⚠️ Room code must be 6 characters');
+                showToast('⚠️ Room code must be 6 characters')
             }
         });
 
-        function connectToRoom(roomCode) {
+        function connectToRoom(roomCode, password = "") {
             const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-            const wsUrl = protocol + window.location.host + '/ws/' + roomCode + '/' + encodeURIComponent(myUsername);
+            let wsUrl = protocol + window.location.host + '/ws/' + roomCode + '/' + encodeURIComponent(myUsername);
+
+            if(password){
+                wsUrl += '?password=' + encodeURIComponent(password);
+            }
 
             ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
                 isConnected=true;
 
-                setupScreen.style.display = 'none';
-                editorScreen.style.display = 'block';
-                editorScreen.classList.add('stagger-1');
-
-                roomDisplay.innerText = 'ROOM: ' + roomCode;
-                showToast('Connected to server');
-
                 currentRoomCode = roomCode;
-                copyCodeBtn.style.display = 'inline-block';
-
                 pingInterval = setInterval(() =>{
                     if (ws.readyState === WebSocket.OPEN) {
                         ws.send(JSON.stringify({ type: "PING", content: "", senderId: "CLIENT"}));
@@ -655,18 +865,26 @@
 
                 switch(msg.type) {
                     case "ROOM_JOINED":
-                        editor.value = msg.content;
-                        editor.disabled = false;
-                        editor.placeholder = "Start typing here...";
+                        setupScreen.style.display='none';
+                        editorScreen.style.display = 'block';
+                        editorScreen.classList.add('stagger-1');
+                        formatToolbar.style.display='flex';
+                        roomDisplay.innerText='ROOM: ' + currentRoomCode;
+                        copyCodeBtn.style.display='inline-block';
+
+                        showToast('Connected to server');
+
+                        editor.innerHTML = msg.content;
+                        editor.setAttribute('contenteditable', 'true');
 
                         isHostUser = (msg.senderId === "true");
                         roleDisplay.innerText = myUsername + " (" + (isHostUser ? "HOST" : "GUEST") + ")";
                         break;
-
+                    
                     case "TYPING":
                         typingIndicator.innerText = msg.senderName + " is typing...";
                         clearTimeout(typingTimeout);
-                        typingTimeout = setTimeout(() =>{
+                        typingTimeout = setTimeout(() => {
                             typingIndicator.innerText = "";
                         }, 2000);
                         break;
@@ -691,14 +909,19 @@
                     case "NOTIFICATION":
                         showToast('📢 ' + msg.content);
                         break;
-                    
+
                     case "TEXT_UPDATE":
                     case "FORCE_OVERWRITE":
-                        const cursorPosition  = editor.selectionStart;
-                        editor.value = msg.content;
-                        editor.setSelectionRange(cursorPosition, cursorPosition);
+                        if (document.activeElement ===editor){
+                            const currentPos = getCaretPosition(editor);
+                            editor.innerHTML = msg.content;
+                            setCaretPosition(editor, currentPos);
+                        }
+                        else{
+                            editor.innerHTML = msg.content;
+                        }
                         break;
-                    
+
                     case "PROMOTED_TO_HOST":
                         isHostUser = true;
                         roleDisplay.innerText = myUsername + " (HOST)";
@@ -720,18 +943,22 @@
                         break;
 
                     case "IMPORT_DENIED":
-                        showToast( '❌ '+msg.content);
+                        showToast('❌ ' + msg.content);
                         break;
                 }
             };
 
             ws.onclose=(event) => {
                 isConnected = false;
-                editor.disabled = true;
+                editor.setAttribute('contenteditable', 'false');
+                formatToolbar.style.display = 'none';
 
                 clearInterval(pingInterval);
-
-                if (event.code === 1008){
+                if(event.code === 1008 && event.reason === "INVALID_PASSWORD"){
+                    showToast('🔒 Incorrect Password! Access Denied.');
+                    // setTimeout(() => location.reload(), 2000);
+                }
+                else if(event.code === 1008){
                     showToast('⚠️ Room does not exist or expired.');
                     setTimeout(() => location.reload(), 2000);
                 }
@@ -742,14 +969,15 @@
         }
 
         editor.addEventListener('input', (e) => {
-            if (ws && ws.readyState === WebSocket.OPEN){
+            if (ws && ws.readyState === WebSocket.OPEN) {
                 const message = {
                     type: "TEXT_UPDATE",
-                    content: e.target.value,
+                    content: editor.innerHTML,
                     senderId: "CLIENT"
                 };
                 ws.send(JSON.stringify(message));
-                ws.send(JSON.stringify({type: "TYPING", senderName: myUsername, senderId: "CLIENT"}));
+
+                ws.send(JSON.stringify({ type: "TYPING", senderName: myUsername, senderId: "CLIENT"}));
             }
         });
     </script>

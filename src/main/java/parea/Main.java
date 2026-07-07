@@ -15,6 +15,10 @@ public class Main{
     private static final RoomManager roomManager = new RoomManager();
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    public static class CreateRoomRequest {
+        public String password;
+    }
+
     private static void broadcastUserList(Room room){
         try{
             List<Map<String, Object>> userList = new ArrayList<>();
@@ -42,7 +46,15 @@ public class Main{
         System.out.println("--- Parea Backend is LIVE on port " + port + " ---");
         
         app.post("/api/create-room", ctx ->{
-            Room newRoom = roomManager.createNewRoom();
+            String password=null;
+            try{
+                CreateRoomRequest req = ctx.bodyAsClass(CreateRoomRequest.class);
+                if(req !=null) password = req.password;
+            }
+            catch(Exception e){
+            }
+            
+            Room newRoom = roomManager.createNewRoom(password);
             ctx.json(Map.of("roomCode", newRoom.roomCode));
         });
 
@@ -59,10 +71,19 @@ public class Main{
                     return;
                 }
 
+                boolean isHost = room.activeUsers.isEmpty();
+                if (!isHost && room.password != null && !room.password.isBlank()){
+                    String providedPassword = ctx.queryParam("password");
+                    if(providedPassword == null || !providedPassword.equals(room.password)){
+                        ctx.session.close(1008, "INVALID_PASSWORD");
+                        System.out.println("Blocked unauthorized entry to Room: " + roomCode);
+                        return;
+                    }
+                }
+
                 String username =  ctx.pathParam("username");
                 if (username == null || username.isBlank()) username = "Anonymous";
-
-                boolean isHost = room.activeUsers.isEmpty();
+                
                 User user = new User(ctx, isHost, username);
                 room.addUser(user);
 
