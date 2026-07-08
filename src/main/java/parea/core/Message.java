@@ -6,7 +6,7 @@ public class Message {
     public String senderId;
     public String senderName;
     public String fileName;
-
+    public String currentMode;
     public Message(){}
 
     public Message(String type, String content, String senderId){

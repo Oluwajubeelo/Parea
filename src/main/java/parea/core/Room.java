@@ -6,7 +6,7 @@ public class Room {
     public String roomCode;
     public String documentText;
     public CopyOnWriteArrayList<User> activeUsers;
-
+    public String currentMode = "WRITING";
     public String password;
 
     public Room(String roomCode, String password){
@@ -14,6 +14,7 @@ public class Room {
         this.documentText="";
         this.activeUsers=new CopyOnWriteArrayList<>();
         this.password = password;
+        this.currentMode = "WRITING";
     }
 
     public void addUser(User user){
@@ -35,7 +36,3 @@ public class Room {
         }
     }
 }
-
-    
-
-

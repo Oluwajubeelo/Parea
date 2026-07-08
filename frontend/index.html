@@ -199,9 +199,17 @@
             padding-bottom: 10px;
         }
 
-        #document-editor{
+        #workspace-container{
+            display: flex;
             width: 100%;
             height: 55vh;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+
+        #document-editor{
+            flex: 1;
+            height: 100%;
             padding: 20px;
             font-size: 16px;
             font-family: inherit;
@@ -213,7 +221,29 @@
             outline: none;
             line-height: 1.5;
             text-align: left;
+            transition: all 0.3s ease;
         }
+
+        #drawing-canvas{
+            flex: 1;
+            height: 100%;
+            background-color: transparent;
+            border: 2px solid var(--text-color);
+            border-radius: 12px;
+            cursor: crosshair;
+            display: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .mode-writing #document-editor{display: block; flex: 1 1 100%;}
+        .mode-writing #drawing-canvas{display: none;}
+
+        .mode-drawing #document-editor{display: none;}
+        .mode-drawing #drawing-canvas{display: block; flex: 1 1 100%;}
+
+        .mode-both #document-editor{ display: block; flex: 1; min-width: 0;}
+        .mode-both #drawing-canvas{ display: block; flex: 1; min-width: 0;}
 
         #document-editor:focus{
             box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
@@ -407,6 +437,12 @@
                 </div>
 
                 <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="mode-selector" class="btn" style="padding: 6px 12px; font-size: 14px; display: none;" disabled>
+                        <option value="WRITING">Writing Mode</option>
+                        <option value="DRAWING">Drawing Mode</option>
+                        <option value="BOTH">Both (Split)</option>
+                    </select>
+
                     <input type="file" id="file-import" accept=".html" style="display: none;">
 
                     <button class="btn" id="import-btn" style="padding: 6px 12px; font-size: 14px;">IMPORT .HTML / .TXT (MAX 5MB)</button>
@@ -420,9 +456,16 @@
                 <button class="tool-btn" onclick="formatText('italic')" title="Italic"><i>I</i></button>
                 <button class="tool-btn" onclick="formatText('underline')" title="Underline"><u>U</u></button>
                 <input type="color" id="color-picker" title="Text Color" onchange="formatText('foreColor', this.value)">
+
+                <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 5px;"></div>
+                <button class="tool-btn" id="pen-btn" title="Pen Tool">✏️</button>
+                <button class="tool-btn" id="eraser-btn" title="Eraser Tool">🧹</button>
             </div>
 
-            <div id="document-editor" contenteditable="false" placeholder="Awaiting connection..."></div>
+            <div id="workspace-container" class="mode-writing">
+                <div id="document-editor" contenteditable="false" placeholder="Awaiting connection..."></div>
+                <canvas id="drawing-canvas"></canvas>
+            </div>
 
             <div id="typing-indicator" style="color: #7f8c8d; font-size: 0.85rem; font-style: italic; min-height: 20px; margin-top: 5px;"></div>
         </div>
@@ -765,6 +808,109 @@
         const typingIndicator = document.getElementById('typing-indicator');
         const toggleCreatePw = document.getElementById('toggle-create-pw');
         const toggleJoinPw = document.getElementById('toggle-join-pw');
+        const modeSelector = document.getElementById('mode-selector');
+        const workspaceContainer = document.getElementById('workspace-container');
+        const drawingCanvas = document.getElementById('drawing-canvas');
+        const dCtx = drawingCanvas.getContext('2d');
+
+        drawingCanvas.width = 1600;
+        drawingCanvas.height = 1200;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let isEraser = false;
+        const penBtn = document.getElementById('pen-btn');
+        const eraserBtn = document.getElementById('eraser-btn');
+
+        penBtn.style.background = 'var(--text-color)';
+        penBtn.style.color = 'var(--bg-color)';
+
+        penBtn.addEventListener('click', () => {
+            isEraser = false;
+            drawingCanvas.style.cursor = 'crosshair';
+            penBtn.style.background = 'var(--text-color)';
+            penBtn.style.color = 'var(--bg-color)';
+            eraserBtn.style.background = 'var(--bg-color)';
+            eraserBtn.style.color = 'var(--text-color)';
+        });
+
+        eraserBtn.addEventListener('click', () => {
+            isEraser = true;
+            drawingCanvas.style.cursor = 'cell';
+            eraserBtn.style.background = 'var(--text-color)';
+            eraserBtn.style.color = 'var(--bg-color)';
+            penBtn.style.background = 'var(--bg-color)';
+            penBtn.style.color = 'var(--text-color)';
+        });
+
+        modeSelector.addEventListener('change', (e) => {
+            const newMode = e.target.value;
+            workspaceContainer.className = '';
+            if(newMode === 'WRITING') workspaceContainer.classList.add('mode-writing');
+            else if(newMode === 'DRAWING') workspaceContainer.classList.add('mode-drawing');
+            else if(newMode === 'BOTH') workspaceContainer.classList.add('mode-both');
+
+            if(ws && ws.readyState === WebSocket.OPEN){
+                ws.send(JSON.stringify({type: "MODE_UPDATE", content: newMode, senderId: "HOST"}));
+            }
+        });
+
+        function drawLine(x0, y0, x1, y1, color, isEraserMode, emit){
+            dCtx.beginPath();
+            dCtx.moveTo(x0, y0);
+            dCtx.lineTo(x1, y1);
+
+            if(isEraserMode) {
+                dCtx.globalCompositeOperation = 'destination-out';
+                dCtx.lineWidth = 20;
+                dCtx.strokeStyle = 'rgba(0,0,0,1)';
+            }
+            else{
+                dCtx.globalCompositeOperation = 'source-over';
+                dCtx.lineWidth = 4;
+                dCtx.strokeStyle = color;
+            }
+            dCtx.lineCap = 'round';
+            dCtx.stroke();
+            dCtx.closePath();
+
+            dCtx.globalCompositeOperation = 'source-over';
+
+            if(emit && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: "DRAWING_UPDATE",
+                    content: JSON.stringify({x0, y0, x1, y1, color, isEraserMode}),
+                    senderId: "CLIENT"
+                }));
+            }
+        }
+        drawingCanvas.addEventListener('mousedown',(e) =>{
+            isDrawing = true;
+            const rect = drawingCanvas.getBoundingClientRect();
+            const scaleX = drawingCanvas.width / rect.width;
+            const scaleY = drawingCanvas.height / rect.height;
+            lastX = (e.clientX - rect.left) * scaleX;
+            lastY = (e.clientY - rect.top) * scaleY;
+        });
+
+        drawingCanvas.addEventListener('mousemove', (e) =>{
+            if(!isDrawing) return;
+            const rect = drawingCanvas.getBoundingClientRect();
+            const scaleX = drawingCanvas.width / rect.width;
+            const scaleY = drawingCanvas.height / rect.height;
+            const currentX = (e.clientX - rect.left) * scaleX;
+            const currentY = (e.clientY - rect.top) * scaleY;
+
+            const color = document.getElementById('color-picker').value || '#000000';
+            drawLine(lastX, lastY, currentX, currentY, color, isEraser, true);
+            lastX = currentX;
+            lastY = currentY;
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDrawing = false;
+        })
 
         const eyeOpenSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
         const eyeClosedSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>`;
@@ -879,8 +1025,59 @@
 
                         isHostUser = (msg.senderId === "true");
                         roleDisplay.innerText = myUsername + " (" + (isHostUser ? "HOST" : "GUEST") + ")";
+
+                        if(isHostUser){
+                            modeSelector.disabled = false;
+                            modeSelector.style.display = 'inline-block';
+                        }
+
+                        if(msg.currentMode){
+                            workspaceContainer.className = '';
+                            if(msg.currentMode === 'WRITING') workspaceContainer.classList.add('mode-writing');
+                            else if(msg.currentMode === 'DRAWING') workspaceContainer.classList.add('mode-drawing');
+                            else if(msg.currentMode === 'BOTH') workspaceContainer.classList.add('mode-both');
+                            modeSelector.value = msg.currentMode;
+                        }
+
+                        if(!isHostUser){
+                            ws.send(JSON.stringify({type: "REQUEST_CANVAS", senderId: "CLIENT"}));
+                        }
                         break;
-                    
+
+                    case "MODE_UPDATE":
+                        workspaceContainer.className = '';
+                        const newMode = msg.content;
+                        if (newMode === 'WRITING') workspaceContainer.classList.add('mode-writing');
+                        else if(newMode ==='DRAWING') workspaceContainer.classList.add('mode-drawing');
+                        else if(newMode === 'BOTH')workspaceContainer.classList.add('mode-both');
+                        modeSelector.value = newMode;
+                        break;
+
+                    case "DRAWING_UPDATE":
+                        const data = JSON.parse(msg.content);
+                        drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.isEraserMode, false);
+                        break;
+
+                    case "REQUEST_CANVAS":
+                        if(isHostUser){
+                            const dataUrl = drawingCanvas.toDataURL();
+                            ws.send(JSON.stringify({
+                                type: "CANVAS_SYNC",
+                                content: dataUrl,
+                                fileName: msg.senderId,
+                                senderId: "HOST"
+                            }));
+                        }
+                        break;
+
+                    case "CANVAS_SYNC":
+                        const img = new Image();
+                        img.onload = () => {
+                            dCtx.drawImage(img, 0, 0);
+                        };
+                        img.src = msg.content;
+                        break;
+
                     case "TYPING":
                         typingIndicator.innerText = msg.senderName + " is typing...";
                         clearTimeout(typingTimeout);
@@ -925,6 +1122,8 @@
                     case "PROMOTED_TO_HOST":
                         isHostUser = true;
                         roleDisplay.innerText = myUsername + " (HOST)";
+                        modeSelector.disabled = false;
+                        modeSelector.style.display = 'inline-block';
                         showToast('👑 ' + msg.content);
                         break;
 
@@ -952,6 +1151,8 @@
                 isConnected = false;
                 editor.setAttribute('contenteditable', 'false');
                 formatToolbar.style.display = 'none';
+                modeSelector.style.display = 'none';
+                modeSelector.disabled = true;
 
                 clearInterval(pingInterval);
                 if(event.code === 1008 && event.reason === "INVALID_PASSWORD"){

@@ -87,7 +87,9 @@ public class Main{
                 User user = new User(ctx, isHost, username);
                 room.addUser(user);
 
-                ctx.send(new Message("ROOM_JOINED", room.documentText, String.valueOf(isHost)));
+                Message welcomeMsg = new Message("ROOM_JOINED", room.documentText, String.valueOf(isHost));
+                welcomeMsg.currentMode = room.currentMode;
+                ctx.send(welcomeMsg);
 
                 broadcastUserList(room);
 
@@ -133,6 +135,15 @@ public class Main{
                             room.broadcastToEveryone(notification);
                             }
                         break;
+
+                    case "MODE_UPDATE":
+                        room.currentMode = msg.content;
+                        for (User u : room.activeUsers) {
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        break;
                 
                     case "IMPORT_REQUEST":
                         //route this request only to the host
@@ -150,6 +161,33 @@ public class Main{
                         for (User u : room.activeUsers) {
                             if(u.connection.sessionId().equals(msg.senderId)){
                                 u.connection.send(new Message("IMPORT_DENIED" , "Host rejected the import.", "SERVER"));
+                                break;
+                            }
+                        }
+                        break;
+                    
+                    case "DRAWING_UPDATE":
+                        for(User u : room.activeUsers){
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        break;
+
+                    case "REQUEST_CANVAS":
+                        msg.senderId = ctx.sessionId();
+                        for(User u : room.activeUsers){
+                            if(u.isHost){
+                                u.connection.send(msg);
+                                break;
+                            }
+                        }
+                        break;
+
+                    case "CANVAS_SYNC":
+                        for(User u : room.activeUsers){
+                            if(u.connection.sessionId().equals(msg.fileName)){
+                                u.connection.send(ctx.message());
                                 break;
                             }
                         }
