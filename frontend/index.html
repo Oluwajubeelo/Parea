@@ -64,12 +64,13 @@
             z-index: 10;
             width: 95%;
             max-width: 1200px;
-            margin: auto;
+            margin: 0 auto;
             background: var(--bg-color);
             padding: 40px;
             border: none;
             border-radius: 16px;
-            box-shadow: 0 15px 40px rgbs(0,0,0,0.08);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            box-sizing: border-box;
         }
 
         h1{
@@ -465,6 +466,8 @@
                 <button class="tool-btn" id="pen-btn" title="Pen Tool">✏️</button>
                 <button class="tool-btn" id="eraser-btn" title="Eraser Tool">🧹</button>
 
+                <input type="range" id="brush-size" min="1" max="50" value="4" title="Brush/Eraser Size" style="width: 100px; margin: 0 10px; cursor: pointer;">
+
                 <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 5px;"></div>
 
                 <input type = "file" id="file-import" accept=".html,.txt" style="display: none;">
@@ -695,6 +698,33 @@
             sel.addRange(range);
         }
 
+        function applyOverwriteAndUnpack(rawHTML){
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = rawHTML;
+            const backupImg = tempDiv.querySelector('#parea-canvas-backup');
+
+            if(backupImg){
+                const img = new Image();
+                img.onload = () =>{
+                    dCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                    dCtx.drawImage(img, 0, 0);
+                }
+                img.src = backupImg.src;
+                backupImg.remove();
+            }
+
+            const strippedText = tempDiv.innerHTML;
+
+            if(document.activeElement === editor){
+                const currentPos = getCaretPosition(editor);
+                editor.innerHTML = strippedText;
+                setCaretPosition(editor, currentPos);
+            }
+            else{
+                editor.innerHTML = strippedText;
+            }
+        }
+
         const importBtn = document.getElementById('import-btn');
         const fileInput = document.getElementById('file-import');
         const importModal = document.getElementById('import-modal');
@@ -729,7 +759,7 @@
             reader.onload = (event) => {
                 const text = event.target.result;
                 if (isHostUser){
-                    editor.innerHTML = text;
+                    applyOverwriteAndUnpack(text);
                     ws.send(JSON.stringify({ type: "FORCE_OVERWRITE", content: text, fileName: file.name, senderName: myUsername, senderId: "HOST"}));
                     showToast('📄 File imported succesfully');
                 }
@@ -746,7 +776,7 @@
             importModal.style.opacity = '0';
             setTimeout(() => importModal.style.display = 'none' , 300);
 
-            editor.innerHTML = pendingImportText;
+            applyOverwriteAndUnpack(pendingImportText);
             ws.send(JSON.stringify({type: "FORCE_OVERWRITE", content: pendingImportText, fileName: pendingFileName, senderName: myUsername, senderId: "HOST"}));
             showToast('✅ Import approved and appplied.')
         });
@@ -759,8 +789,9 @@
         })
 
         leaveBtn.addEventListener('click', async () => {
-            if(isLastUser && editor.innerText.trim() !== ""){
+            if(isLastUser){
                 try {
+                    const backupHTML = editor.innerHTML + '<img id="parea-canvas-backup" src="' + drawingCanvas.toDataURL() + '" style="display:none;">';
                     if (window.showSaveFilePicker){
                         const fileHandle = await window.showSaveFilePicker({
                             suggestedName:'Parea_Backup.html',
@@ -770,12 +801,12 @@
                             }],
                         });
                         const writable = await fileHandle.createWritable();
-                        await writable.write(editor.innerHTML);
+                        await writable.write(backupHTML);
                         await writable.close();
                         showToast('💾 Backup saved successfully.')
                     }
                     else{
-                        const blob = new Blob([editor.innerHTML], {type: 'text'});
+                        const blob = new Blob([backupHTML], {type: 'text'});
                         const url = URL.createdObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
@@ -832,6 +863,19 @@
         const penBtn = document.getElementById('pen-btn');
         const eraserBtn = document.getElementById('eraser-btn');
 
+        let penSize = 4;
+        let eraserSize = 20;
+        const brushSizeInput = document.getElementById('brush-size');
+
+        brushSizeInput.addEventListener('input', (e) =>{
+            if(isEraser){
+                eraserSize = e.target.value;
+            }
+            else{
+                penSize = e.target.value;
+            }
+        });
+
         penBtn.style.background = 'var(--text-color)';
         penBtn.style.color = 'var(--bg-color)';
 
@@ -842,6 +886,7 @@
             penBtn.style.color = 'var(--bg-color)';
             eraserBtn.style.background = 'var(--bg-color)';
             eraserBtn.style.color = 'var(--text-color)';
+            brushSizeInput.value = penSize;
         });
 
         eraserBtn.addEventListener('click', () => {
@@ -851,6 +896,7 @@
             eraserBtn.style.color = 'var(--bg-color)';
             penBtn.style.background = 'var(--bg-color)';
             penBtn.style.color = 'var(--text-color)';
+            brushSizeInput.value = eraserSize;
         });
 
         modeSelector.addEventListener('change', (e) => {
@@ -865,19 +911,19 @@
             }
         });
 
-        function drawLine(x0, y0, x1, y1, color, isEraserMode, emit){
+        function drawLine(x0, y0, x1, y1, color, isEraserMode, size, emit){
             dCtx.beginPath();
             dCtx.moveTo(x0, y0);
             dCtx.lineTo(x1, y1);
 
             if(isEraserMode) {
                 dCtx.globalCompositeOperation = 'destination-out';
-                dCtx.lineWidth = 20;
+                dCtx.lineWidth = size;
                 dCtx.strokeStyle = 'rgba(0,0,0,1)';
             }
             else{
                 dCtx.globalCompositeOperation = 'source-over';
-                dCtx.lineWidth = 4;
+                dCtx.lineWidth = size;
                 dCtx.strokeStyle = color;
             }
             dCtx.lineCap = 'round';
@@ -889,11 +935,12 @@
             if(emit && ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     type: "DRAWING_UPDATE",
-                    content: JSON.stringify({x0, y0, x1, y1, color, isEraserMode}),
+                    content: JSON.stringify({x0, y0, x1, y1, color, isEraserMode, size}),
                     senderId: "CLIENT"
                 }));
             }
         }
+
         drawingCanvas.addEventListener('mousedown',(e) =>{
             isDrawing = true;
             const rect = drawingCanvas.getBoundingClientRect();
@@ -912,7 +959,8 @@
             const currentY = (e.clientY - rect.top) * scaleY;
 
             const color = document.getElementById('color-picker').value || '#000000';
-            drawLine(lastX, lastY, currentX, currentY, color, isEraser, true);
+            const currentSize = isEraser ? eraserSize : penSize;
+            drawLine(lastX, lastY, currentX, currentY, color, isEraser, currentSize, true);
             lastX = currentX;
             lastY = currentY;
         });
@@ -1067,7 +1115,7 @@
 
                     case "DRAWING_UPDATE":
                         const data = JSON.parse(msg.content);
-                        drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.isEraserMode, false);
+                        drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.isEraserMode, data.size || (data.isEraserMode ? 20 : 4), false);
                         break;
 
                     case "REQUEST_CANVAS":
@@ -1120,7 +1168,6 @@
                         break;
 
                     case "TEXT_UPDATE":
-                    case "FORCE_OVERWRITE":
                         if (document.activeElement ===editor){
                             const currentPos = getCaretPosition(editor);
                             editor.innerHTML = msg.content;
@@ -1129,6 +1176,10 @@
                         else{
                             editor.innerHTML = msg.content;
                         }
+                        break;
+                        
+                    case "FORCE_OVERWRITE":
+                        applyOverwriteAndUnpack(msg.content);
                         break;
 
                     case "PROMOTED_TO_HOST":
