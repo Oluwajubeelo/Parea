@@ -7,6 +7,8 @@ public class Message {
     public String senderName;
     public String fileName;
     public String currentMode;
+    public String replyToSender;
+    public String replyToContent;
     public Message(){}
 
     public Message(String type, String content, String senderId){

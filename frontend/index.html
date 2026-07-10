@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1246,5 +1246,135 @@
             }
         });
     </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parea</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div id="toast-container"></div>
+
+    <div id="import-modal">
+        <div style="background: var(--bg-color); border: 2px solid var(--text-color); padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0; font-size: 1.5rem; text-transform: uppercase;">Import Request</h3>
+            <p id="import-modal-text" style="font-weight: bold; margin-bottom: 25px; color: #555;">A guest wants to import an .html file.</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="btn" id="approve-btn">Approve</button>
+                <button class="btn" id="deny-btn">Deny</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <h1 class="stagger-1">Parea</h1>
+        <p class="motto"><span id="motto-text"></span><span class="cursor">_</span></p>
+
+        <div id="setup-screen">
+            <div class="stagger-2">
+                <div class="input-row">
+                    <input type="text" id="create-username-input" placeholder="USERNAME" autocomplete="off" maxlength="15">
+                    <div class="password-wrapper">
+                        <input type="password" id="create-password-input" placeholder="PASSWORD (OPTIONAL)" autocomplete="off" maxlength="20">
+                        <button type="button" class="password-toggle" id="toggle-create-pw" tabindex="-1" title="Toggle Visibility">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn" id="create-room-btn">Create New Room</button>
+            </div>
+            <p class="stagger-3" style="color: #999; font-weight: bold; margin: 20px 0;">- OR -</p>
+            <div class="stagger-4">
+                <div class="input-row">
+                    <input type="text" id="join-username-input" placeholder="USERNAME" autocomplete="off" maxlength="15">
+                    <input type="text" id="room-code-input" placeholder="ENTER CODE" autocomplete="off" maxlength="6">
+                </div>
+                <div class="password-wrapper" style="margin-bottom: 15px;">
+                    <input type="password" id="join-password-input" placeholder="PASSWORD (IF REQUIRED)" autocomplete="off" maxlength="20">
+                    <button type="button" class="password-toggle" id="toggle-join-pw" tabindex="-1" title="Toggle Visibility">
+                        <svg xmlns="http://www/w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                </div>
+                <button class="btn" id="join-room-btn">Join</button>
+            </div>
+        </div>
+
+        <div id="editor-screen">
+            <div class="header-top-row">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="room-display" style="font-size: 1.2rem;">ROOM: ----</span>
+                    <button id="copy-code-btn" class="btn" style="padding: 4px 10px; font-size: 12px; display: none;" title="Copy Room Code">COPY</button>
+                </div>
+
+                <div class="dropdown">
+                    <span id="users-display" style="color: #7f8c8d; font-size: 1rem; padding: 0 10px; cursor: pointer; border-bottom: 1px dotted #7f8c8d;">USERS: 1 ▼</span>
+                    <div class="dropdown-content" id="users-list"></div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span id="role-display" style="font-weight: bold; font-size: 1.1rem; color: #555;"></span>
+                    <button class="btn" id="leave-btn" style="padding: 6px 16px; font-size: 14px; background: #ff4d4d; color: white; border-color: #ff4d4d;">LEAVE</button>
+                </div>
+            </div>
+
+            <div class="command-bar" id="format-toolbar" style="display: none;">
+                <select id="mode-selector" class="btn" style="padding: 6px 12px; font-size: 14px; border-color: var(--border-color); display: none;" disabled>
+                    <option value="WRITING">📝 Writing Mode</option>
+                    <option value="DRAWING">🎨 Drawing Mode</option>
+                    <option value="BOTH">🌗 Both (Split)</option>
+                </select>
+
+                <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 5px;"></div>
+
+                <button class="tool-btn" onclick="formatText('bold')" title="Bold"><b>B</b></button>
+                <button class="tool-btn" onclick="formatText('italic')" title="Italic"><i>I</i></button>
+                <button class="tool-btn" onclick="formatText('underline')" title="Underline"><u>U</u></button>
+                <input type="color" id="color-picker" title="Text Color" onchange="formatText('foreColor', this.value)">
+
+                <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 5px;"></div>
+
+                <button class="tool-btn" id="pen-btn" title="Pen Tool">✏️</button>
+                <button class="tool-btn" id="eraser-btn" title="Eraser Tool">🧹</button>
+
+                <input type="range" id="brush-size" min="1" max="50" value="4" title="Brush/Eraser Size" style="width: 100px; margin: 0 10px; cursor: pointer;">
+
+                <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 5px;"></div>
+
+                <input type="file" id="file-import" accept=".html,.txt" style="display: none;">
+                <button class="tool-btn" id="import-btn" title="Import .html / .txt (Max 5MB)">📤 Upload</button>
+                <button class="tool-btn" id="toggle-chat-btn" title="Toggle Chat Sidebar" style="margin-left: auto;">💬 Chat</button>
+            </div>
+
+            <div id="main-workspace-flex">
+                <div  id="workspace-container" class="mode-writing">
+                    <div id="document-editor" contenteditable="false" placeholder="You can start typing now..."></div>
+                    <canvas id="drawing-canvas"></canvas>
+                </div>
+
+                <div id="chat-sidebar" style="display: flex;">
+                    <div id="chat-history"></div>
+                    <div id="reply-preview" style="display: none;">
+                        <div style="display: flex; flex-direction: column; overflow: hidden; padding-right: 10px;">
+                            <span id="reply-preview-sender" style="font-weight: bold; color: var(--text-color);"></span>
+                            <span id="reply-preview-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+                        </div>
+                        <button id="cancel-reply-btn" title="Cancel Reply">✖</button> 
+                    </div>
+                    <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+                </div>
+            </div>
+
+            <div id="typing-indicator" style="color: #7f8c8d; font-size: 0.85rem; font-style: italic; min-height: 20px; margin-top: 5px;"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>

@@ -122,6 +122,22 @@ public class Main{
                             }
                         }
                         break;
+
+                    case "CURSOR_MOVE":
+                        for(User u : room.activeUsers){
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        break;
+
+                    case "CHAT_MESSAGE":
+                        for(User u : room.activeUsers){
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        break;
                     
                     case "FORCE_OVERWRITE":
                         room.documentText = msg.content;
