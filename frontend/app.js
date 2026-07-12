@@ -831,6 +831,7 @@ function connectToRoom(roomCode, password = "") {
             case "IMPORT_DENIED":
                 showToast('❌ ' + msg.content);
                 break;
+
         }
     };
 
@@ -913,3 +914,82 @@ function updateRemoteCursor(username, xPercent, yPercent){
 
     cursorEl.style.transform = `translate(${pixelX}px, ${pixelY}px)`;
 }
+
+const stickyLayer = document.getElementById('sticky-layer');
+
+drawingCanvas.addEventListener('dblclick', (e) => {
+    const rect = drawingCanvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    const noteId = 'note-' + myUsername + '-' + Date.now();
+
+    createStickyNoteLocal(noteId, clickX, clickY, "", "#fffac0");
+});
+
+function createStickyNoteLocal(id, x, y, text, color){
+    const noteWrapper = document.createElement('div');
+    noteWrapper.id = id;
+    noteWrapper.className = 'sticky-note';
+    noteWrapper.style.left = x + 'px';
+    noteWrapper.style.top = y + 'px';
+    noteWrapper.style.backgroundColor = color;
+
+    const header = document.createElement('div');
+    header.className = 'sticky-header';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'sticky-delete-btn';
+    deleteBtn.innerHTML = '✖';
+    deleteBtn.onclick = () => noteWrapper.remove();
+
+    header.appendChild(deleteBtn);
+
+    const textArea = document.createElement('div');
+    textArea.className='sticky-text-area';
+    textArea.contentEditable = 'true';
+    textArea.innerText = text;
+
+    noteWrapper.appendChild(header);
+    noteWrapper.appendChild(textArea);
+
+    stickyLayer.appendChild(noteWrapper);
+    textArea.focus();
+}
+
+let activeSticky = null;
+let stickyOffsetX = 0;
+let stickyOffsetY = 0;
+
+stickyLayer.addEventListener('mousedown', (e) =>{
+    if(e.target.classList.contains('sticky-header')){
+        activeSticky = e.target.closest('.sticky-note');
+        const rect = activeSticky.getBoundingClientRect();
+
+        stickyOffsetX = e.clientX - rect.left;
+        stickyOffsetY = e.clientY - rect.top;
+
+        e.target.style.cursor = 'grabbing';
+        activeSticky.style.zIndex = 1000;
+    }
+});
+
+window.addEventListener('nousemove', (e) =>{
+    if(!activeSticky) return;
+
+    const layerRect = stickyLayer.getBoundingClientRect();
+    const newX = e.clientX - layerRect.left - stickyOffsetX;
+    const newY = e.clientY - layerRect.top - stickyOffsetY;
+
+    activeSticky.style.left = newX + 'px';
+    activeSticky.style.top = newY + 'px';
+});
+
+window.addEventListener('mouseup', () => {
+    if(!activeSticky){
+        const header = activeSticky.querySelector('.sticky-header');
+        if(header) header.style.cursor = 'grab';
+
+        activeSticky.style.zIndex = 50;
+        activeSticky = null;
+    }
+});

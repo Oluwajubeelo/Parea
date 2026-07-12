@@ -181,7 +181,7 @@ public class Main{
                             }
                         }
                         break;
-                    
+
                     case "DRAWING_UPDATE":
                         for(User u : room.activeUsers){
                             if(!u.connection.sessionId().equals(ctx.sessionId())){
