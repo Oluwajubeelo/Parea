@@ -214,6 +214,22 @@ public class Main{
                         }
                         break;
 
+                    case "CANVAS_UNDO":
+                        for(User u : room.activeUsers){
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        break;
+
+                    case "CANVAS_REDO":
+                        for(User u : room.activeUsers){
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        break;
+
                     case "REQUEST_CANVAS":
                         msg.senderId = ctx.sessionId();
                         for(User u : room.activeUsers){

@@ -463,6 +463,8 @@ let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
 let isEraser = false;
+let canvasHistory = [];
+let canvasRedoHistory = [];
 const penBtn = document.getElementById('pen-btn');
 const eraserBtn = document.getElementById('eraser-btn');
 
@@ -570,7 +572,11 @@ drawingCanvas.addEventListener('mousemove', (e) =>{
 });
 
 window.addEventListener('mouseup', () =>{
-    isDrawing = false;
+    if(isDrawing){
+        isDrawing = false;
+        canvasHistory.push(drawingCanvas.toDataURL());
+        canvasRedoHistory = [];
+    }
 });
 
 const eyeOpenSVG = `<svg xmlns="http://www/w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
@@ -751,6 +757,34 @@ function connectToRoom(roomCode, password = ""){
                 const targetToRemove = document.getElementById(msg.content);
                 if (targetToRemove) targetToRemove.remove();
                 if (activeElement && activeElement.id === msg.content) activeElement = null;
+                break;
+
+            case "CANVAS_UNDO":
+                dCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                if (msg.content !== "CLEAR") {
+                    const img = new Image();
+                    img.onload = () => {
+                        dCtx.drawImage(img, 0, 0);
+                    };
+                    img.src = msg.content;
+                    if(canvasHistory.length > 0) canvasRedoHistory.push(canvasHistory.pop());
+                }
+                else{
+                    if(canvasHistory.length > 0) canvasRedoHistory.push(canvasHistory.pop());
+                    canvasHistory = [];
+                }
+                break;
+
+            case "CANVAS_REDO":
+                dCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                if (msg.content !== "CLEAR") {
+                    const img = new Image();
+                    img.onload = () => {
+                        decodeURIComponent.drawImage(img, 0, 0);
+                    };
+                    img.src = msg.content;
+                    if(canvasRedoHistory.length > 0) canvasHistory.push(canvasRedoHistory.pop());
+                }
                 break;
 
             case "REQUEST_CANVAS":
@@ -1247,6 +1281,63 @@ window.addEventListener('keydown', (e) => {
 
         e.preventDefault();
         deleteImage(focusedImg.id);
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key ==='z') {
+        if (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable) {
+            return;
+        }
+        e.preventDefault();
+
+        if (canvasHistory.length > 0) {
+            canvasRedoHistory.push(canvasHistory.pop());
+            dCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+
+            let previousState = "CLEAR";
+            if (canvasHistory.length > 0) {
+                previousState = canvasHistory[canvasHistory.length - 1];
+                const img = new Image();
+                img.onload = () => {
+                    dCtx.drawImage(img, 0, 0);
+                };
+                img.src = previousState;
+            }
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: "CANVAS_UNDO",
+                    content: previousState,
+                    senderId: "CLIENT"
+                }));
+            }
+        }
+    }
+
+    if((e.ctrlKey || e.metaKey) && e.key ==='y'){
+        if (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable) {
+            return;
+        }
+        e.preventDefault();
+
+        if(canvasRedoHistory.length > 0) {
+            const redoState = canvasRedoHistory.pop();
+            canvasHistory.push(redoState);
+
+            dCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            const img = new Image();
+            img.onload = () => {
+                dCtx.drawImage(img, 0, 0);
+            };
+            img.src = redoState;
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: "CANVAS_REDO",
+                    content: redoState,
+                    senderId: "CLIENT"
+                }));
+            }
+        }
     }
 });
 
