@@ -39,7 +39,7 @@ window.addEventListener('mouseout', () =>{
     mouse.y = -1000;
 });
 
-class Partilcle{
+class Particle{
     constructor(){
         this.x = Math.random() * width;
         this.y = Math.random() * height;
@@ -91,15 +91,15 @@ let activeForces = [];
 let isConnected = false;
 let particleOpacity = 0.35;
 
-for(let i = 0; i < particleCount; i ++){
-    particles.push(new Partilcle());
+for(let i = 0; i < particleCount; i++){
+    particles.push(new Particle());
 }
 
 function animate(){
     ctx.clearRect(0, 0, width, height);
 
     if(isConnected){
-        particleOpacity -= 0.01;
+        particleOpacity -=0.01;
         if(particleOpacity > 0.85) particleOpacity = 0.85;
     }
     else{
@@ -107,7 +107,7 @@ function animate(){
         if(particleOpacity > 0.85) particleOpacity = 0.85;
     }
 
-    activeForces = [];
+    activeForces =[];
 
     if(mouse.x > -1000){
         activeForces.push({x: mouse.x, y: mouse.y, radius: mouse.radius});
@@ -186,16 +186,17 @@ function setCaretPosition(element, offset){
         if(stop) return;
         if(node.nodeType === 3){
             let nodeLength = node.length;
-            if( currentOffset + nodeLength >= offset){
+            if(currentOffset + nodeLength >= offset){
                 range.setStart(node, offset - currentOffset);
                 range.setEnd(node, offset - currentOffset);
+                stop = true;
             }
             else{
                 currentOffset += nodeLength;
             }
         }
         else{
-            for(let i = 0; i <node.childNodes.length; i++){
+            for(let i = 0; i < node.childNodes.length; i++){
                 traverseNodes(node.childNodes[i]);
             }
         }
@@ -250,7 +251,7 @@ let isHostUser = false;
 let pendingImportText ="";
 let myUsername = "";
 let pendingGuestId = "";
-let pendingFileName= "";
+let pendingFileName = "";
 let isLastUser = false;
 let currentRoomCode = "";
 let typingTimeout = null;
@@ -264,7 +265,7 @@ fileInput.addEventListener('change', (e) => {
     const maxSize = 5 * 1024 * 1024;
     if(file.size > maxSize){
         showToast('⚠️ File is too large! Maximum limit is 5MB.');
-        e.target.value = '';
+        e.target.value='';
         return;
     }
 
@@ -274,11 +275,11 @@ fileInput.addEventListener('change', (e) => {
         if(isHostUser){
             applyOverwriteAndUnpack(text);
             ws.send(JSON.stringify({type: "FORCE_OVERWRITE", content: text, fileName: file.name, senderName: myUsername, senderId: "HOST"}));
-            showToast('📄 File imported succcessfully');
+            showToast('📄 File imported successfully');
         }
         else{
             ws.send(JSON.stringify({type: "IMPORT_REQUEST", content: text, fileName: file.name, senderId: "CLIENT"}));
-            showToast('⏳ Sent import request to the Host...')
+            showToast('⌛ Sent import request to the Host...')
         }
     };
     reader.readAsText(file);
@@ -286,12 +287,12 @@ fileInput.addEventListener('change', (e) => {
 });
 
 approveBtn.addEventListener('click', () => {
-    importModal.style.opacity ='0';
-    setTimeout(() => importModal.style.display = 'none' , 300);
+    importModal.style.opacity = '0';
+    setTimeout(() => importModal.style.display = 'none', 300);
 
     applyOverwriteAndUnpack(pendingImportText);
     ws.send(JSON.stringify({type: "FORCE_OVERWRITE", content: pendingImportText, fileName: pendingFileName, senderName: myUsername, senderId: "HOST"}));
-    showToast('✅ Import approved and applied.')
+    showToast('✅Import approved and applied.')
 });
 
 denyBtn.addEventListener('click', () => {
@@ -299,7 +300,7 @@ denyBtn.addEventListener('click', () => {
     setTimeout(() => importModal.style.display = 'none', 300);
 
     ws.send(JSON.stringify({type: "IMPORT_DENIED", content: "Host rejected the import.", senderId: pendingGuestId}));
-})
+});
 
 leaveBtn.addEventListener('click', async () => {
     if(isLastUser){
@@ -314,7 +315,7 @@ leaveBtn.addEventListener('click', async () => {
                     }],
                 });
                 const blob = new Blob([backupHTML],{type: 'text/html'});
-                const url = URL.createdObjectURL(blob);
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'Parea_Backup.html'
@@ -411,7 +412,7 @@ function appendChatMessage(senderName, messageContent, replySender = null, reply
 
     if(replySender && replyText){
         const quoteDiv = document.createElement('div');
-        quoteDiv.className = 'quoted-reply';
+        quoteDiv. className = 'quoted-reply';
         quoteDiv.innerHTML = `<strong style="color: var(--text-color);">${replySender}</strong><br>${replyText}`;
         msgDiv.appendChild(quoteDiv);
     }
@@ -505,7 +506,7 @@ modeSelector.addEventListener('change', (e) => {
     const newMode = e.target.value;
     workspaceContainer.className = '';
     if(newMode === 'WRITING') workspaceContainer.classList.add('mode-writing');
-    else if(newMode ==='DRAWING') workspaceContainer.classList.add('mode-drawing');
+    else if(newMode === 'DRAWING') workspaceContainer.classList.add('mode-drawing');
     else if(newMode === 'BOTH') workspaceContainer.classList.add('mode-both');
 
     if(ws && ws.readyState === WebSocket.OPEN){
@@ -534,7 +535,7 @@ function drawLine(x0, y0, x1, y1, color, isEraserMode, size, emit){
 
     dCtx.globalCompositeOperation = 'source-over';
 
-    if(emit && ws && ws.readyState === WebSocket.OPEN) {
+    if(emit && ws && ws.readyState === WebSocket.OPEN){
         ws.send(JSON.stringify({
             type: "DRAWING_UPDATE",
             content: JSON.stringify({x0, y0, x1, y1, color, isEraserMode, size}),
@@ -544,6 +545,7 @@ function drawLine(x0, y0, x1, y1, color, isEraserMode, size, emit){
 }
 
 drawingCanvas.addEventListener('mousedown', (e) =>{
+    if (e.button !== 0) return;
     isDrawing = true;
     const rect = drawingCanvas.getBoundingClientRect();
     const scaleX = drawingCanvas.width / rect.width;
@@ -569,13 +571,13 @@ drawingCanvas.addEventListener('mousemove', (e) =>{
 
 window.addEventListener('mouseup', () =>{
     isDrawing = false;
-})
+});
 
 const eyeOpenSVG = `<svg xmlns="http://www/w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
 const eyeClosedSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>`;
 
 function setupPasswordToggle(toggleBtn, inputEl){
-    toggleBtn.addEventListener('click', () => {
+    toggleBtn.addEventListener('click', () =>{
         if(inputEl.type === 'password'){
             inputEl.type='text';
             toggleBtn.innerHTML = eyeClosedSVG;
@@ -615,9 +617,9 @@ createBtn.addEventListener('click', async() => {
         const response = await fetch ('/api/create-room', {
             method: 'POST',
             headers: { 'Content-Type' : 'application/json'},
-            body: JSON.stringify({ password: myPassword})
+            body : JSON.stringify({ password: myPassword})
         });
-        if(!response.ok) throw new Error("Server rejected request");
+        if(!response.ok) throw new Error ("Server rejected request");
         const data = await response.json();
         connectToRoom(data.roomCode);
     }
@@ -644,23 +646,28 @@ joinBtn.addEventListener('click', () => {
     }
 });
 
-function connectToRoom(roomCode, password = "") {
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+function connectToRoom(roomCode, password = ""){
+    const protocol = window.location.protocol === 'https: ' ? 'wss://' : 'ws://';
     let wsUrl = protocol + window.location.host + '/ws/' + roomCode + '/' + encodeURIComponent(myUsername);
 
     if(password){
         wsUrl += '?password=' + encodeURIComponent(password);
     }
 
-    ws = new WebSocket(wsUrl);
+    try{
+        ws = new WebSocket(wsUrl);
+    }
+    catch(e){
+        showToast('⚠️ Failed to initiate WebSocket. Backend might be offline.');
+        return;
+    }
 
     ws.onopen = () => {
         isConnected = true;
-
         currentRoomCode = roomCode;
         pingInterval = setInterval(() =>{
             if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: "PING", content: "", senderId: "CLIENT"}));
+                ws.send(JSON.stringify({type: "PING", content: "", senderId: "CLIENT"}));
             }
         }, 30000);
     };
@@ -708,20 +715,42 @@ function connectToRoom(roomCode, password = "") {
 
             case "CHAT_MESSAGE":
                 appendChatMessage(msg.senderName, msg.content, msg.replyToSender, msg.replyToContent, msg.senderName === myUsername);
-                break;    
+                break;
 
             case "MODE_UPDATE":
                 workspaceContainer.className = '';
                 const newMode = msg.content;
                 if (newMode === 'WRITING') workspaceContainer.classList.add('mode-writing');
                 else if (newMode === 'DRAWING') workspaceContainer.classList.add('mode-drawing');
-                else if(newMode === 'BOTH')workspaceContainer.classList.add('mode-both');
+                else if (newMode === 'BOTH') workspaceContainer.classList.add('mode-both');
                 modeSelector.value = newMode;
                 break;
 
             case "DRAWING_UPDATE":
                 const data = JSON.parse(msg.content);
                 drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.isEraserMode, data.size || (data.isEraserMode ? 20 : 4), false);
+                break;
+
+            case "IMAGE_DROP":
+                const dropData = JSON.parse(msg.content);
+                createFloatingImageLocal(dropData.id, dropData.src, dropData.x, dropData.y, dropData.width, dropData.height);
+                break;
+
+            case "IMAGE_UPDATE":
+                const updateData = JSON.parse(msg.content);
+                const targetImg = document.getElementById(updateData.id);
+                if(targetImg){
+                    targetImg.style.left = updateData.x + 'px';
+                    targetImg.style.top = updateData.y + 'px';
+                    targetImg.style.width = updateData.width + 'px';
+                    targetImg.style.height = updateData.height + 'px';
+                }
+                break;
+
+            case "IMAGE_DELETE":
+                const targetToRemove = document.getElementById(msg.content);
+                if (targetToRemove) targetToRemove.remove();
+                if (activeElement && activeElement.id === msg.content) activeElement = null;
                 break;
 
             case "REQUEST_CANVAS":
@@ -761,7 +790,7 @@ function connectToRoom(roomCode, password = "") {
 
             case "USER_LIST_UPDATE":
                 const users = JSON.parse(msg.content);
-                usersDisplay.innerText = "USERS: " + users.length + " ▼";
+                usersDisplay.innerText = "USERS: " + users.length + "  ▼";
 
                 if(users.length > 1){
                     isLastUser = false;
@@ -772,7 +801,7 @@ function connectToRoom(roomCode, password = "") {
                 const activeUsernames = [];
 
                 users.forEach(u =>{
-                    const userDiv = document.createElement("div");
+                    const userDiv = document.createElement('div');
                     userDiv.className = "dropdown-user";
                     userDiv.innerText = u.username + (u.isHost ? " (HOST)" : " (GUEST)");
                     usersListDisplay.appendChild(userDiv);
@@ -816,7 +845,7 @@ function connectToRoom(roomCode, password = "") {
 
             case "LAST_USER_WARNING":
                 isLastUser = true;
-                showToast('⚠️ You are the last user. Click "Leave" to save a backup.');
+                showToast('⚠️ You are the last user. Click "Leave" to save to a backup.');
                 break;
 
             case "IMPORT_REQUEST":
@@ -825,7 +854,7 @@ function connectToRoom(roomCode, password = "") {
                 pendingFileName = msg.fileName;
                 importModalText.innerText = `Guest ${msg.senderName} wants to import '${msg.fileName}'.`;
                 importModal.style.display = 'flex';
-                setTimeout(() => importModal.style.opacity = '1', 10);
+                setTimeout(() => importModal.style.opacity ='1', 10);
                 break;
 
             case "IMPORT_DENIED":
@@ -835,7 +864,7 @@ function connectToRoom(roomCode, password = "") {
         }
     };
 
-    ws.onclose=(event) => {
+    ws.onclose = (event) => {
         isConnected= false;
         editor.setAttribute('contenteditable', 'false');
         formatToolbar.style.display = 'none';
@@ -851,7 +880,7 @@ function connectToRoom(roomCode, password = "") {
             setTimeout(() => location.reload(), 2000);
         }
         else{
-            showToast('🔌 Disconnected from the server.')
+            showToast('🔌Disconnected from the server.')
         }
     };
 }
@@ -865,7 +894,7 @@ editor.addEventListener('input', (e) => {
         };
         ws.send(JSON.stringify(message));
 
-        ws.send(JSON.stringify({ type: "TYPING", senderName: myUsername, senderId: "CLIENT"}));
+        ws.send(JSON.stringify({type: "TYPING", senderName: myUsername, senderId: "CLIENT"}));
     }
 });
 
@@ -882,7 +911,7 @@ window.addEventListener('mousemove', (e) => {
 
         ws.send(JSON.stringify({
             type: "CURSOR_MOVE",
-            content: JSON.stringify({ x: xPercent, y: yPercent }),
+            content: JSON.stringify({ x: xPercent, y: yPercent}),
             senderName: myUsername,
             senderId: "CLIENT"
         }));
@@ -894,8 +923,8 @@ window.addEventListener('mousemove', (e) => {
 function updateRemoteCursor(username, xPercent, yPercent){
     const cursorId = 'cursor-' + username;
     let cursorEl = document.getElementById(cursorId);
-    
-    if (!cursorEl){
+
+    if(!cursorEl){
         cursorEl = document.createElement('div');
         cursorEl.id = cursorId;
         cursorEl.className = 'remote-cursor';
@@ -921,7 +950,7 @@ drawingCanvas.addEventListener('dblclick', (e) => {
     const rect = drawingCanvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
-    const noteId = 'note-' + myUsername + '-' + Date.now();
+    const noteId = 'note- ' + myUsername + '-' + Date.now();
 
     createStickyNoteLocal(noteId, clickX, clickY, "", "#fffac0");
 });
@@ -939,13 +968,13 @@ function createStickyNoteLocal(id, x, y, text, color){
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'sticky-delete-btn';
-    deleteBtn.innerHTML = '✖';
+    deleteBtn.innerHTML = '❌';
     deleteBtn.onclick = () => noteWrapper.remove();
 
     header.appendChild(deleteBtn);
 
     const textArea = document.createElement('div');
-    textArea.className='sticky-text-area';
+    textArea.className = 'sticky-text-area';
     textArea.contentEditable = 'true';
     textArea.innerText = text;
 
@@ -956,40 +985,354 @@ function createStickyNoteLocal(id, x, y, text, color){
     textArea.focus();
 }
 
-let activeSticky = null;
+let activeElement = null;
 let stickyOffsetX = 0;
 let stickyOffsetY = 0;
+let isResizing = false;
+let activeHandle = null;
+let resizeStartX = 0, resizeStartY = 0;
+let startWidth = 0, startHeight = 0, startLeft = 0, startTop = 0;
 
-stickyLayer.addEventListener('mousedown', (e) =>{
-    if(e.target.classList.contains('sticky-header')){
-        activeSticky = e.target.closest('.sticky-note');
-        const rect = activeSticky.getBoundingClientRect();
+const workspaceContainerDom = document.getElementById('workspace-container');
 
-        stickyOffsetX = e.clientX - rect.left;
-        stickyOffsetY = e.clientY - rect.top;
-
-        e.target.style.cursor = 'grabbing';
-        activeSticky.style.zIndex = 1000;
+workspaceContainerDom.addEventListener('mousedown', (e) => {
+    if(e.target.id === 'drawing-canvas' || e.target.id === 'document-editor'){
+        document.querySelectorAll('.floating-image-wrapper').forEach(el => el.classList.remove('focused'));
     }
 });
 
-window.addEventListener('nousemove', (e) =>{
-    if(!activeSticky) return;
+stickyLayer.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+
+    if(e.target.classList.contains('resize-handle')){
+        isResizing = true;
+        activeHandle = e.target.dataset.pos;
+        activeElement = e.target.closest('.floating-image-wrapper');
+        const rect = activeElement.getBoundingClientRect();
+        const parentRect = stickyLayer.getBoundingClientRect();
+
+        resizeStartX = e.clientX;
+        resizeStartY = e.clientY;
+        startWidth = rect.width;
+        startHeight = rect.height;
+        startLeft = rect.left - parentRect.left;
+        startTop = rect.top - parentRect.top;
+        return;
+    }
+
+    if(e.target.classList.contains('floating-image-wrapper') || e.target.classList.contains('floating-image')){
+        const wrapper = e.target.closest('.floating-image-wrapper');
+        document.querySelectorAll('.floating-image-wrapper').forEach(el => el.classList.remove('focused'));
+        wrapper.classList.add('focused');
+
+        activeElement = wrapper;
+        const rect = activeElement.getBoundingClientRect();
+        stickyOffsetX = e.clientX - rect.left;
+        stickyOffsetY = e.clientY - rect.top;
+        activeElement.style.zIndex = 1000;
+        return;
+    }
+
+    if(e.target.classList.contains('sticky-header') || e.target.closest('.sticky-header')){
+        activeElement = e.target.closest('.sticky-note');
+        const rect = activeElement.getBoundingClientRect();
+        stickyOffsetX = e.clientX - rect.left;
+        stickyOffsetY = e.clientY - rect.top;
+        const header = activeElement.querySelector('.sticky-header');
+        if(header) header.style.cursor = 'grabbing';
+        activeElement.style.zIndex = 1000;
+        return;
+    }
+});
+
+window.addEventListener('mousemove', (e) => {
+    if(!activeElement) return;
+
+    if(isResizing){
+        const dx = e.clientX - resizeStartX;
+        const dy = e.clientY - resizeStartY;
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newLeft = startLeft;
+        let newTop = startTop;
+
+        if(activeHandle && activeHandle.includes('e')) newWidth = startWidth + dx;
+        if(activeHandle && activeHandle.includes('w')){
+            newWidth = startWidth - dx;
+            newLeft = startLeft + dx;
+        }
+        if(activeHandle && activeHandle.includes('s')) newHeight = startHeight + dy;
+        if(activeHandle && activeHandle.includes('n')){
+            newHeight= startHeight - dy;
+            newTop = startTop + dy;
+        }
+
+        if(newWidth > 30){
+            activeElement.style.width = newWidth + 'px';
+            activeElement.style.left = newLeft + 'px';
+        }
+        if(newHeight > 30){
+            activeElement.style.height = newHeight + 'px';
+            activeElement.style.top = newTop + 'px';
+        }
+
+        const now = Date.now();
+        if(now - lastCursorSendTime > cursorThrottleMS){
+            broadcastImageUpdate(activeElement);
+            lastCursorSendTime = now;
+        }
+        return;
+    }
 
     const layerRect = stickyLayer.getBoundingClientRect();
     const newX = e.clientX - layerRect.left - stickyOffsetX;
     const newY = e.clientY - layerRect.top - stickyOffsetY;
+    activeElement.style.left = newX + 'px';
+    activeElement.style.top = newY + 'px';
 
-    activeSticky.style.left = newX + 'px';
-    activeSticky.style.top = newY + 'px';
+    if(activeElement.classList.contains('floating-image-wrapper')){
+        const now = Date.now();
+        if(now - lastCursorSendTime > cursorThrottleMS){
+            broadcastImageUpdate(activeElement);
+            lastCursorSendTime = now;
+        }
+    }
 });
 
 window.addEventListener('mouseup', () => {
-    if(!activeSticky){
-        const header = activeSticky.querySelector('.sticky-header');
-        if(header) header.style.cursor = 'grab';
+    if(activeElement){
+        if(isResizing || activeElement.classList.contains('floating-image-wrapper')){
+            broadcastImageUpdate(activeElement);
+        }
 
-        activeSticky.style.zIndex = 50;
-        activeSticky = null;
+        if(activeElement.classList.contains('sticky-note')){
+            const header = activeElement.querySelector('.sticky-header');
+            if(header) header.style.cursor = 'grab';
+        }
+
+        activeElement.style.zIndex = 50;
+        activeElement = null;
+        isResizing = false;
+        activeHandle = null;
+    }
+});
+
+function broadcastImageUpdate(imgWrapper){
+    if(ws && ws.readyState === WebSocket.OPEN){
+        ws.send(JSON.stringify({
+            type: "IMAGE_UPDATE",
+            content: JSON.stringify({
+                id: imgWrapper.id,
+                x: parseFloat(imgWrapper.style.left),
+                y: parseFloat(imgWrapper.style.top),
+                width: parseFloat(imgWrapper.style.width),
+                height: parseFloat(imgWrapper.style.height)
+            }),
+            senderId: "CLIENT"
+        }));
+    }
+}
+
+function createFloatingImageLocal(id, src, x, y, width, height){
+    const wrapper = document.createElement('div');
+    wrapper.id = id;
+    wrapper.className = 'floating-image-wrapper';
+    wrapper.style.left = x + 'px';
+    wrapper.style.top = y + 'px';
+    wrapper.style.width = width + 'px';
+    wrapper.style.height = height + 'px';
+
+    const img = document.createElement('img');
+    img.src = src;
+    img.className = 'floating-image';
+    img.draggable = false;
+    wrapper.appendChild(img);
+
+    const positions = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+    positions.forEach(pos => {
+        const handle = document.createElement('div');
+        handle.className = `resize-handle ${pos}`;
+        handle.dataset.pos = pos;
+        wrapper.appendChild(handle);
+    });
+
+    stickyLayer.appendChild(wrapper);
+}
+
+window.addEventListener('dragover', (e) =>{
+    e.preventDefault();
+    e.stopPropagation();
+});
+
+window.addEventListener('drop', (e) =>{
+    e.preventDefault();
+    e.stopPropagation();
+
+    if(!isConnected) return;
+
+    if(!e.dataTransfer || !e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
+
+    const file = e.dataTransfer.files[0];
+    if(!file.type.startsWith('image/')){
+        showToast('⚠️ Please drop a valid image file');
+        return;
+    }
+
+    const maxSize = 2 * 1024 * 1024;
+    if(file.size > maxSize){
+        showToast('⚠️ Image is too large! Maximum limit is 2MB');
+        return;
+    }
+
+    const rect = stickyLayer.getBoundingClientRect();
+    const dropX = e.clientX - rect.left;
+    const dropY = e.clientY - rect.top;
+
+    const reader = new FileReader();
+    reader.onload  = (event) => {
+        const base64Src = event.target.result;
+        const img = new Image();
+
+        img.onload = () => {
+            const maxWidth = 300;
+            let finalWidth = img.width;
+            let finalHeight = img.height;
+
+            if(finalWidth > maxWidth){
+                const ratio = maxWidth / finalWidth;
+                finalWidth = maxWidth;
+                finalHeight = finalHeight * ratio;
+            }
+
+            const drawX = dropX - (finalWidth / 2);
+            const drawY = dropY - (finalHeight / 2);
+            const imgId = 'img-' + myUsername + '-' + Date.now();
+
+            createFloatingImageLocal(imgId, base64Src, drawX, drawY, finalWidth, finalHeight);
+
+            if(ws && ws.readyState === WebSocket.OPEN){
+                ws.send(JSON.stringify({
+                    type: "IMAGE_DROP",
+                    content: JSON.stringify({id: imgId, src: base64Src, x: drawX, y: drawY, width: finalWidth, height: finalHeight}),
+                    senderId: "CLIENT"
+                }));
+            }
+            showToast('🖼️ Image dropped succesfully!');
+        }
+        img.src = base64Src;
+    };
+    reader.readAsDataURL(file);
+});
+
+function deleteImage(imgId) {
+    const el = document.getElementById(imgId);
+    if (el) el.remove();
+    if (activeElement && activeElement.id === imgId) activeElement = null;
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            type: "IMAGE_DELETE",
+            content: imgId,
+            senderId: "CLIENT"
+        }));
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    const focusedImg = document.querySelector('.floating-image-wrapper.focused');
+    if ((e.key === 'Delete' || e.key === 'Backspace') && focusedImg) {
+        if (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable) {
+            return;
+        }
+
+        e.preventDefault();
+        deleteImage(focusedImg.id);
+    }
+});
+
+const contextMenu = document.getElementById('custom-context-menu');
+let copiedImageContext = null;
+let contextTargetId = null;
+
+window.addEventListener('contextmenu', (e) => {
+    const imgWrapper = e.target.closest('.floating-image-wrapper');
+    const workspaceNode = e.target.closest('#workspace-container');
+
+    if (imgWrapper) {
+        e.preventDefault();
+        contextTargetId = imgWrapper.id;
+
+        document.querySelectorAll('.floating-image-wrapper').forEach(el => el.classList.remove('focused'));
+        imgWrapper.classList.add('focused');
+
+        document.getElementById('menu-copy').style.display = 'block';
+        document.getElementById('menu-delete').style.display = 'block';
+        document.getElementById('menu-paste').style.display = copiedImageContext ? 'block' : 'none';
+
+        contextMenu.style.display = 'block';
+        contextMenu.style.left = e.clientX + 'px';
+        contextMenu.style.top = e.clientY + 'px';
+    }
+    else if (workspaceNode && copiedImageContext) {
+        e.preventDefault();
+        contextTargetId = null;
+
+        document.querySelectorAll('.floating-image-wrapper').forEach(el => el.classList.remove('focused'));
+
+        document.getElementById('menu-copy').style.display = 'none';
+        document.getElementById('menu-delete').style.display = 'none';
+        document.getElementById('menu-paste').style.display = 'block';
+
+        contextMenu.style.display = 'block';
+        contextMenu.style.left = e.clientX + 'px';
+        contextMenu.style.top = e.clientY + 'px';
+    }
+    else{
+        contextMenu.style.display = 'none';
+    }
+});
+
+//hide context menu when clicking anywhere else
+window.addEventListener('click', () => {
+    if (contextMenu) contextMenu.style.display = 'none';
+});
+
+//copy logic
+document.getElementById('menu-copy').addEventListener('click',() => {
+    if(contextTargetId) {
+        const el = document.getElementById(contextTargetId);
+        const img = el.querySelector('img');
+        copiedImageContext = {
+            src: img.src,
+            width: parseFloat(el.style.width),
+            height: parseFloat(el.style.height)
+        };
+        showToast('🖼️ Image copied!');
+    }
+});
+
+//pasting logic
+document.getElementById('menu-paste').addEventListener('click', (e) => {
+    if (copiedImageContext) {
+        const layerRect = stickyLayer.getBoundingClientRect();
+        const pasteX = parseFloat(contextMenu.style.left) - layerRect.left;
+        const pasteY = parseFloat(contextMenu.style.top) - layerRect.top;
+
+        const newImgId = 'img-' + myUsername + '-' + Date.now();
+        createFloatingImageLocal(newImgId, copiedImageContext.src, pasteX, pasteY, copiedImageContext.width, copiedImageContext.height);
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: "IMAGE_DROP", 
+                content: JSON.stringify({id: newImgId, src: copiedImageContext.src, x: pasteX, y: pasteY, width: copiedImageContext.width, height: copiedImageContext.height}),
+                senderId: "CLIENT"
+            }));
+        }
+    }
+});
+
+document.getElementById('menu-delete').addEventListener('click', () => {
+    if (contextTargetId) {
+        deleteImage(contextTargetId);
     }
 });

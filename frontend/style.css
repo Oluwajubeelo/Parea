@@ -7,7 +7,7 @@
 }
 
 body{
-    font-family: 'Courier New', 'Courier New', Courier, monospace;
+    font-family: 'Courier New', 'Courier New' , Courier, monospace;
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
@@ -15,7 +15,7 @@ body{
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items:center;
+    align-items: center;
     justify-content: flex-start;
     overflow-x: hidden;
     overflow-y: auto;
@@ -27,7 +27,7 @@ body{
     top: 0;
     left: 0;
     width: 100vw;
-    height:100vh;
+    height: 100vh;
     z-index: 100;
     pointer-events: none;
 }
@@ -95,7 +95,7 @@ h1{
     cursor: pointer;
     font-size: 16px;
     font-family: inherit;
-    font-weight:bold;
+    font-weight: bold;
     transition: all 0.2s ease;
     text-transform: uppercase;
 }
@@ -108,7 +108,7 @@ h1{
 input[type="text"], input[type="password"]{
     padding: 12px;
     font-size: 16px;
-    font-family: inherit;
+    font-family:inherit;
     border: 2px solid var(--border-color);
     border-radius: 8px;
     text-align: center;
@@ -130,7 +130,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     justify-content: center;
     align-items: center;
     margin-bottom: 15px;
-    width: 100%;
+    width: 100%
 }
 
 .password-wrapper{
@@ -218,7 +218,7 @@ input[type="text"]:focus, input[type="password"]:focus {
 }
 
 .sticky-note{
-    position: absolute;
+    position:absolute;
     width: 160px;
     min-height: 160px;
     background-color: #fffac0;
@@ -228,7 +228,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     pointer-events: auto;
     border-radius: 2px;
     border-bottom-right-radius: 12px;
-    display: flex;
+    display:flex;
     flex-direction: column;
     overflow: hidden;
 }
@@ -311,9 +311,9 @@ input[type="text"]:focus, input[type="password"]:focus {
 .mode-writing #drawing-canvas{display: none;}
 
 .mode-drawing #document-editor{display:none;}
-.mode-drawing #drawing-canvas{display:block; flex: 1 1 100%;}
+.mode-drawing #drawing-canvas{display: block; flex: 1 1 100%}
 
-.mode-both #document-editor{display: block; flex: 1; min-width: 0;}
+.mode-both #document-editor{display: block; flex: 1; min-width:0;}
 .mode-both #drawing-canvas{display: block; flex: 1; min-width: 0;}
 
 #document-editor:focus{
@@ -352,7 +352,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     padding: 6px 12px;
     cursor: pointer;
     font-family: inherit;
-    font-size:16px;
+    font-size: 16px;
     font-weight: bold;
     transition: all 0.2s;
 }
@@ -399,7 +399,7 @@ input[type="color"]{
 }
 
 .dropdown{
-    position:relative;
+    position: relative;
     display: inline-block;
 }
 
@@ -458,7 +458,7 @@ input[type="color"]{
     border-top: 2px solid var(--text-color);
     border-radius: 0;
     width: 100%;
-    padding:12px 15px;
+    padding: 12px 15px;
     font-size: 14px;
     box-sizing: border-box;
     outline: none;
@@ -501,7 +501,7 @@ input[type="color"]{
     margin-bottom: 3px;
     color: #777;
     text-transform: uppercase;
-    letter-spacing: 0.5px
+    letter-spacing: 0.5px;
 }
 
 .reply-btn{
@@ -532,7 +532,7 @@ input[type="color"]{
 }
 
 .quoted-reply{
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: rgba(0,0,0,0.05);
     border-left: 3px solid var(--text-color);
     padding: 6px 10px;
     margin-bottom: 6px;
@@ -542,7 +542,7 @@ input[type="color"]{
 }
 
 .msg-self .quoted-reply{
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255,255,255, 0.15);
     border-left: 3px solid var(--bg-color);
 }
 
@@ -574,7 +574,7 @@ input[type="color"]{
 }
 
 #cancel-reply-btn:hover{
-    opacity: 1;
+    opacity:1;
 }
 
 #import-modal{
@@ -584,7 +584,7 @@ input[type="color"]{
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(255,255,255,0.9);
+    background: rgba(255,255,255, 0.9);
     z-index: 300;
     justify-content: center;
     align-items: center;
@@ -594,7 +594,7 @@ input[type="color"]{
 
 .remote-cursor{
     position: fixed;
-    top: 0;
+    top:0;
     left: 0;
     pointer-events: none;
     z-index: 9999;
@@ -608,7 +608,7 @@ input[type="color"]{
     width: 18px;
     height: 18px;
     fill: var(--text-color);
-    stroke: var(--bg-color);
+    stroke: var(--text-color);
     stroke-width: 1.5px;
     transform: rotate(-20deg);
 }
@@ -624,4 +624,85 @@ input[type="color"]{
     font-weight: bold;
     white-space: nowrap;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.floating-image-wrapper{
+    position: absolute;
+    box-sizing: border-box;
+    cursor: grab;
+    pointer-events: auto;
+}
+
+.floating-image-wrapper:active{
+    cursor: grabbing;
+}
+
+.floating-image-wrapper.focused{
+    outline: 1.5px solid #1a73e8;
+}
+
+.floating-image{
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+    user-select: none;
+}
+
+.resize-handle{
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: #ffffff;
+    border: 1.5px solid #1a73e8;
+    display: none;
+    box-sizing: border-box;
+}
+
+.floating-image-wrapper.focused .resize-handle{
+    display: block;
+}
+
+.resize-handle.nw { top: -4px; left: -4px; cursor: nwse-resize;}
+.resize-handle.n { top: -4px; left: calc(50% - 4px); cursor: ns-resize;}
+.resize-handle.ne { top: -4px; right: -4px; cursor: nesw-resize;}
+.resize-handle.e { top: calc(50% - 4px); right: -4px; cursor: ew-resize;}
+.resize-handle.se { bottom: -4px; right: -4px; cursor: nwse-resize;}
+.resize-handle.s { bottom: -4px; left: calc(50% - 4px); cursor: ns-resize;}
+.resize-handle.sw { bottom: -4px; left: -4px; cursor: nesw-resize;}
+.resize-handle.w { top: calc(50% - 4px); left: -4px; cursor: ew-resize;}
+
+.context-menu {
+    display: none;
+    position: absolute;
+    background-color: var(--bg-color);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+    z-index: 10000;
+    padding: 5px 0;
+    min-width: 130px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.context-menu-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.context-menu-item:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
+.context-menu-item.delete {
+    color: #ff4d4d;
+}
+
+.context-menu-item.delete:hover {
+    background-color: #ff4d4d;
+    color: white;
 }

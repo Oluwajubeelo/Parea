@@ -23,17 +23,17 @@ public class Main{
         try{
             List<Map<String, Object>> userList = new ArrayList<>();
             for (User u : room.activeUsers){
-                userList.add(Map.of("username", u.username, "isHost", u.isHost));
+                userList.add(Map.of("username", u.username,"isHost", u.isHost));
             }
             String jsonList = mapper.writeValueAsString(userList);
             room.broadcastToEveryone(new Message("USER_LIST_UPDATE", jsonList, "SERVER"));
         }
-        catch(Exception e) {
+        catch(Exception e){
             e.printStackTrace();
         }
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         int port = System.getenv("PORT") !=null ? Integer.parseInt(System.getenv("PORT")) : 8080;
 
         Javalin app=Javalin.create(config -> {
@@ -44,7 +44,7 @@ public class Main{
         }).start(port);
 
         System.out.println("--- Parea Backend is LIVE on port " + port + " ---");
-        
+
         app.post("/api/create-room", ctx ->{
             String password=null;
             try{
@@ -53,7 +53,7 @@ public class Main{
             }
             catch(Exception e){
             }
-            
+
             Room newRoom = roomManager.createNewRoom(password);
             ctx.json(Map.of("roomCode", newRoom.roomCode));
         });
@@ -81,9 +81,9 @@ public class Main{
                     }
                 }
 
-                String username =  ctx.pathParam("username");
+                String username = ctx.pathParam("username");
                 if (username == null || username.isBlank()) username = "Anonymous";
-                
+
                 User user = new User(ctx, isHost, username);
                 room.addUser(user);
 
@@ -105,10 +105,10 @@ public class Main{
                 switch(msg.type){
                     case "PING":
                         break;
-                    
+
                     case "TYPING":
-                        for(User u : room.activeUsers){
-                            if (!u.connection.sessionId().equals(ctx.sessionId())){
+                        for (User u : room.activeUsers){
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
                                 u.send(ctx.message());
                             }
                         }
@@ -122,7 +122,7 @@ public class Main{
                             }
                         }
                         break;
-
+                    
                     case "CURSOR_MOVE":
                         for(User u : room.activeUsers){
                             if(!u.connection.sessionId().equals(ctx.sessionId())){
@@ -138,7 +138,7 @@ public class Main{
                             }
                         }
                         break;
-                    
+
                     case "FORCE_OVERWRITE":
                         room.documentText = msg.content;
                         for (User u : room.activeUsers) {
@@ -146,21 +146,21 @@ public class Main{
                                 u.send(ctx.message());
                             }
                         }
-                        if(msg.fileName !=null){
-                            Message notification = new Message("NOTIFICATION", "Host " + msg.senderName + " imported '" + msg.fileName + "'", "SERVER");
+                        if(msg.fileName != null){
+                            Message notification = new Message("NOTIFICATION", "Host " + msg.senderName + " imported '" + msg.fileName + "'",  "SERVER");
                             room.broadcastToEveryone(notification);
-                            }
+                        }
                         break;
 
                     case "MODE_UPDATE":
                         room.currentMode = msg.content;
-                        for (User u : room.activeUsers) {
+                        for (User u : room.activeUsers){
                             if(!u.connection.sessionId().equals(ctx.sessionId())){
                                 u.send(ctx.message());
                             }
                         }
                         break;
-                
+
                     case "IMPORT_REQUEST":
                         //route this request only to the host
                         msg.senderId = ctx.sessionId();
@@ -171,18 +171,42 @@ public class Main{
                             }
                         }
                         break;
-                
+
                     case "IMPORT_DENIED":
                         //host denies import. route the rejection back to the specific guest
                         for (User u : room.activeUsers) {
                             if(u.connection.sessionId().equals(msg.senderId)){
-                                u.connection.send(new Message("IMPORT_DENIED" , "Host rejected the import.", "SERVER"));
+                                u.connection.send(new Message("IMPORT_DENIED", "Host rejected the import.", "SERVER"));
                                 break;
                             }
                         }
                         break;
 
                     case "DRAWING_UPDATE":
+                        for (User u : room.activeUsers){
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        break;
+
+                    case "IMAGE_DROP":
+                        for(User u : room.activeUsers){
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        break;
+
+                    case "IMAGE_UPDATE":
+                        for(User u : room.activeUsers){
+                            if(!u.connection.sessionId().equals(ctx.sessionId())){
+                                u.send(ctx.message());
+                            }
+                        }
+                        break;
+
+                    case "IMAGE_DELETE":
                         for(User u : room.activeUsers){
                             if(!u.connection.sessionId().equals(ctx.sessionId())){
                                 u.send(ctx.message());
@@ -211,7 +235,7 @@ public class Main{
                 }
             });
 
-            //when a user closes their browser tab
+            //When a user closes their browser tab
             ws.onClose(ctx -> {
                 String roomCode = ctx.pathParam("roomCode").toUpperCase();
                 Room room = roomManager.getRoom(roomCode);
@@ -228,8 +252,7 @@ public class Main{
 
                 if (userWhoLeft !=null){
                     room.removeUser(userWhoLeft);
-                    // System.out.println("User left room " + roomCode);
-                    
+
                     if(room.activeUsers.isEmpty()){
                         roomManager.destroyRoom(roomCode);
                     }
@@ -240,13 +263,12 @@ public class Main{
                         if(userWhoLeft.isHost){
                             User newHost = room.activeUsers.get(0);
                             newHost.isHost = true;
-                            newHost.connection.send(new Message ("PROMOTED_TO_HOST","You are now the room host.", "SERVER"));
-                            // System.out.println("Host transferred in room" + roomCode);
+                            newHost.connection.send(new Message ("PROMOTED_TO_HOST", "You are now the room host.", "SERVER"));
                         }
-                        if (room.activeUsers.size() == 1){
-                        room.activeUsers.get(0).connection.send(new Message ("LAST_USER_WARNING", "", "SERVER"));
-                        }   
-                    }   
+                        if (room.activeUsers.size() ==1){
+                            room.activeUsers.get(0).connection.send(new Message ("LAST_USER_WARNING", "", "SERVER"));
+                        }
+                    }
                 }
             });
         });

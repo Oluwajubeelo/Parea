@@ -39,7 +39,7 @@
                 </div>
                 <button class="btn" id="create-room-btn">Create New Room</button>
             </div>
-            <p class="stagger-3" style="color: #999; font-weight: bold; margin: 20px 0;">- OR -</p>
+            <p class="stagger-3" style="color:#999; font-weight: bold; margin: 20px 0;">- OR -</p>
             <div class="stagger-4">
                 <div class="input-row">
                     <input type="text" id="join-username-input" placeholder="USERNAME" autocomplete="off" maxlength="15">
@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="dropdown">
-                    <span id="users-display" style="color: #7f8c8d; font-size: 1rem; padding: 0 10px; cursor: pointer; border-bottom: 1px dotted #7f8c8d;">USERS: 1 ▼</span>
+                    <span id="users-display" style="color: #7f8c8d; font-size: 1rem; padding: 0 10px; cursor: pointer; border-bottom: 1px dotted #7f8c8d;">USERS: 1  ▼</span>
                     <div class="dropdown-content" id="users-list"></div>
                 </div>
 
@@ -77,32 +77,32 @@
                 <select id="mode-selector" class="btn" style="padding: 6px 12px; font-size: 14px; border-color: var(--border-color); display: none;" disabled>
                     <option value="WRITING">📝 Writing Mode</option>
                     <option value="DRAWING">🎨 Drawing Mode</option>
-                    <option value="BOTH">🌗 Both (Split)</option>
+                    <option value="BOTH">🌓 Both (Split)</option>
                 </select>
 
                 <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 5px;"></div>
 
                 <button class="tool-btn" onclick="formatText('bold')" title="Bold"><b>B</b></button>
                 <button class="tool-btn" onclick="formatText('italic')" title="Italic"><i>I</i></button>
-                <button class="tool-btn" onclick="formatText('underline')" title="Underline"><u>U</u></button>
+                <button class="tool-btn" onclick="formatText('underline')" title="underline"><u>U</u></button>
                 <input type="color" id="color-picker" title="Text Color" onchange="formatText('foreColor', this.value)">
 
                 <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 5px;"></div>
 
                 <button class="tool-btn" id="pen-btn" title="Pen Tool">✏️</button>
-                <button class="tool-btn" id="eraser-btn" title="Eraser Tool">🧹</button>
+                <button class="tool-btn" id="eraser-btn" title="Eraser Tool">🖌️</button>
 
                 <input type="range" id="brush-size" min="1" max="50" value="4" title="Brush/Eraser Size" style="width: 100px; margin: 0 10px; cursor: pointer;">
 
                 <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 5px;"></div>
 
                 <input type="file" id="file-import" accept=".html,.txt" style="display: none;">
-                <button class="tool-btn" id="import-btn" title="Import .html / .txt (Max 5MB)">📤 Upload</button>
-                <button class="tool-btn" id="toggle-chat-btn" title="Toggle Chat Sidebar" style="margin-left: auto;">💬 Chat</button>
+                <button class="tool-btn" id="import-btn" title="Import .html / .txt (Max 5MB)">📥 Import</button>
+                <button class="tool-btn" id="toggle-chat-btn" title="Toggle Chat Sidebar" style="margin-left: auto;">💬Chat</button>
             </div>
 
             <div id="main-workspace-flex">
-                <div  id="workspace-container" class="mode-writing">
+                <div id="workspace-container" class="mode-writing">
                     <div id="document-editor" contenteditable="false" placeholder="You can start typing now..."></div>
                     <canvas id="drawing-canvas"></canvas>
                     <div id="sticky-layer"></div>
@@ -115,7 +115,7 @@
                             <span id="reply-preview-sender" style="font-weight: bold; color: var(--text-color);"></span>
                             <span id="reply-preview-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
                         </div>
-                        <button id="cancel-reply-btn" title="Cancel Reply">✖</button> 
+                        <button id="cancel-reply-btn" title="Cancel Reply">❌</button>
                     </div>
                     <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
                 </div>
@@ -123,6 +123,12 @@
 
             <div id="typing-indicator" style="color: #7f8c8d; font-size: 0.85rem; font-style: italic; min-height: 20px; margin-top: 5px;"></div>
         </div>
+    </div>
+
+    <div id="custom-context-menu" class="context-menu">
+        <div class="context-menu-item" id="menu-copy">Copy</div>
+        <div class="context-menu-item" id="menu-paste">Paste</div>
+        <div class="context-menu-item delete" id="menu-delete">Delete</div>
     </div>
 
     <script src="app.js"></script>
